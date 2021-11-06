@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Sample1_12
+  m_Name: MAT_3
   m_Shader: {fileID: 4800000, guid: 3701d6a6f5f988b4a9cea92f1426a955, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -27,8 +27,12 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _EmissionMap:
+    - _DecalTex:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: de2b4ef18f7a3f5439ef7f96c80ec68f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap2:
@@ -40,7 +44,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a7e436d1a3974d7488c430d281578a4f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MatCap:
@@ -68,7 +72,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: de2b4ef18f7a3f5439ef7f96c80ec68f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap2:
@@ -90,13 +94,29 @@ Material:
     - _BlightOutput: 1
     - _Bright: 1
     - _BumpScale: 1
-    - _Culling: 0
+    - _Culling: 2
     - _Cutout: 0.5
+    - _DecalAnimX: 1
+    - _DecalAnimY: 1
+    - _DecalAnimation: 0
+    - _DecalEnable: 0
+    - _DecalFO: 0
+    - _DecalMode: 0
+    - _DecalPosX: 0.5
+    - _DecalPosY: 0.5
+    - _DecalRotation: 0
+    - _DecalScrollX: 0
+    - _DecalScrollY: 0
+    - _DecalSizeX: 0.5
+    - _DecalSizeY: 0.5
     - _DirectionalLight: 1
-    - _Emission: 1
+    - _Emission: 0.75
+    - _EmissionAnimX: 4
+    - _EmissionAnimY: 4
+    - _EmissionAnimation: 0.1
     - _EmissionBlink: 0
-    - _EmissionEnable: 0
-    - _EmissionFO: 0
+    - _EmissionEnable: 1
+    - _EmissionFO: 1
     - _EmissionFrequency: 1
     - _EmissionInTheDark: 0
     - _EmissionLighting: 0
@@ -106,11 +126,11 @@ Material:
     - _EmissionWaveform: 0
     - _EnableBlightFix: 0
     - _EnableGammaFix: 0
+    - _EnableZWrite: 1
     - _GammaB: 1
     - _GammaG: 1
     - _GammaR: 1
     - _GlossMapScale: 0.75
-    - _IgnoreTexAlpha: 0
     - _IgnoreTexAlphaE: 0
     - _IgnoreTexAlphaPE: 0
     - _IgnoreTexAlphaR: 0
@@ -132,14 +152,17 @@ Material:
     - _OutLineEnable: 0
     - _OutLineFixScale: 0
     - _OutLineLighthing: 1
-    - _OutLineSize: 0.5
+    - _OutLineSize: 0.1
     - _OutLineTexColor: 0
     - _OutlineFO: 0
+    - _ParallaxAnimX: 4
+    - _ParallaxAnimY: 4
+    - _ParallaxAnimation: 0.1
     - _ParallaxBlink: 0
-    - _ParallaxDepth: 1
-    - _ParallaxEmission: 1
-    - _ParallaxEnable: 0
-    - _ParallaxFO: 0
+    - _ParallaxDepth: 0.03
+    - _ParallaxEmission: 0.25
+    - _ParallaxEnable: 1
+    - _ParallaxFO: 1
     - _ParallaxFrequency: 1
     - _ParallaxInTheDark: 0
     - _ParallaxLighting: 0
@@ -160,26 +183,32 @@ Material:
     - _RimLitMode: 0
     - _RimLitTexColor: 0
     - _SHLight: 1
-    - _Shade: 1
-    - _ShadeColor: 0
-    - _ShadeGradient: 2
-    - _ShadeWidth: 0.6
-    - _ShadingFO: 1
+    - _Shade: 0.3
+    - _ShadeColor: 0.5
+    - _ShadeGradient: 0.75
+    - _ShadeWidth: 0.75
+    - _ShadingFO: 0
     - _Specular: 1
     - _SpecularSH: 1
     - _SpecularTexColor: 0
     - _Toon: 9
     - _ToonEnable: 0
     - _ToonSharpness: 1
+    - _UVAnimOtherTex: 1
+    - _UVAnimX: 1
+    - _UVAnimY: 1
+    - _UVAnimation: 0
+    - _UVScrollX: 0
+    - _UVScrollY: 0
     - _Unlit: 0
     - _VersionH: 1
-    - _VersionL: 2
-    - _VersionM: 2
+    - _VersionL: 0
+    - _VersionM: 3
     - _VertexColor: 0
-    - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
     - _CustomShadeColor: {r: 0, g: 0, b: 0, a: 0}
+    - _DecalColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutLineColor: {r: 0, g: 0, b: 0, a: 1}
     - _ParallaxColor: {r: 1, g: 1, b: 1, a: 1}

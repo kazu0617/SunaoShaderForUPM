@@ -9,15 +9,47 @@ float4 frag (VOUT IN) : COLOR {
 //-------------------------------------メインカラー
 	float4 OUT          = float4(0.0f , 0.0f , 0.0f , 1.0f);
 
+	float2 MainUV       = (IN.uv + IN.uvanm.xy) * IN.uvanm.zw;
+	       MainUV      += float2(_UVScrollX , _UVScrollY) * _Time.y;
+	float2 SubUV        = IN.uv;
+	if (_UVAnimOtherTex) SubUV = MainUV;
+
 	#if defined(TRANSPARENT) || defined(CUTOUT)
-	       OUT.a        = saturate(tex2D(_MainTex  , IN.uv).a * _Color.a * _Alpha);
-	       OUT.a       *= lerp(1.0f , MonoColor(tex2D(_AlphaMask  , IN.uv).rgb) , _AlphaMaskStrength);
+	       OUT.a        = saturate(UNITY_SAMPLE_TEX2D(_MainTex , MainUV).a * _Color.a * _Alpha);
+	       OUT.a       *= lerp(1.0f , MonoColor(UNITY_SAMPLE_TEX2D_SAMPLER(_AlphaMask  , _MainTex , SubUV).rgb) , _AlphaMaskStrength);
 	#endif
 
-	float3 Color        = tex2D(_MainTex  , IN.uv).rgb;
+	float3 Color        = UNITY_SAMPLE_TEX2D(_MainTex , MainUV).rgb;
 	       Color        = Color * _Color.rgb * _Bright * IN.color;
 
-	if (_OcclusionMode == 1) Color *= lerp(1.0f , tex2D(_OcclusionMap  , IN.uv).rgb , _OcclusionStrength);
+//----デカール
+	if (_DecalEnable) {
+
+		float4   DecalColor    = float4(0.0f , 0.0f , 0.0f , 1.0f);
+
+		float2   DecalUV       = (float2)0.0f;
+		float2x2 DecalRot      = float2x2(IN.decal.z, -IN.decal.w, IN.decal.w, IN.decal.z);
+		         DecalUV       = IN.uv  - float2(_DecalPosX , _DecalPosY) + IN.decal2.zw;
+		         DecalUV       = mul(DecalRot, DecalUV - IN.decal2.zw)    + IN.decal2.zw;
+		         DecalUV      *= IN.decal.xy;
+		float2   DecalScrUV    = (DecalUV + IN.decanm.xy) * IN.decanm.zw;
+		         DecalScrUV   += float2(_DecalScrollX , _DecalScrollY) * _Time.y;
+
+		         DecalColor    = tex2Dbias(_DecalTex  , float4(DecalScrUV , 0.0f , IN.decal2.x * IN.decal2.y - 1.0f)) * _DecalColor;
+		         DecalColor.a *= saturate((0.5f - abs(DecalUV.x - 0.5f)) * 1000.0f) * saturate((0.5f - abs(DecalUV.y - 0.5f)) * 1000.0f);
+
+		if (_DecalMode == 0) Color = lerp(Color ,          DecalColor.rgb , DecalColor.a);
+		if (_DecalMode == 1) Color = saturate(    Color  + DecalColor.rgb * DecalColor.a);
+		if (_DecalMode == 2) Color = lerp(Color , Color  * DecalColor.rgb , DecalColor.a);
+		if (_DecalMode == 3) {
+			float DecalMixCol = max(Color.r , max(Color.g , Color.b));
+			Color = lerp(Color , DecalMixCol * DecalColor.rgb , DecalColor.a);
+		}
+
+	}
+
+//----オクルージョン
+	if (_OcclusionMode == 1) Color *= lerp(1.0f , UNITY_SAMPLE_TEX2D_SAMPLER(_OcclusionMap , _MainTex , SubUV).rgb , _OcclusionStrength);
 
 //-------------------------------------カットアウト
 	#ifdef CUTOUT
@@ -31,14 +63,14 @@ float4 frag (VOUT IN) : COLOR {
 	float3 tan_sy       = float3(IN.tanW.y , IN.tanB.y , Normal.y);
 	float3 tan_sz       = float3(IN.tanW.z , IN.tanB.z , Normal.z);
 
-	float3 NormalMap    = normalize(UnpackScaleNormal(tex2D(_BumpMap, IN.uv) , _BumpScale));
+	float3 NormalMap    = normalize(UnpackScaleNormal(tex2D(_BumpMap , SubUV) , _BumpScale));
 	       Normal.x     = dot(tan_sx , NormalMap);
 	       Normal.y     = dot(tan_sy , NormalMap);
 	       Normal.z     = dot(tan_sz , NormalMap);
 
 //-------------------------------------シェーディング
-	float3 ShadeMask    = tex2D(_ShadeMask, IN.uv).rgb * _Shade;
-	float3 LightBoost   = 1.0f + (tex2D(_LightMask, IN.uv).rgb * (_LightBoost - 1.0f));
+	float3 ShadeMask    = UNITY_SAMPLE_TEX2D_SAMPLER(_ShadeMask , _MainTex , SubUV).rgb * _Shade;
+	float3 LightBoost   = 1.0f + (tex2D(_LightMask, SubUV).rgb * (_LightBoost - 1.0f));
 
 //----ディフューズ
 	float  Diffuse      = DiffuseCalc(Normal , IN.ldir , _ShadeGradient , _ShadeWidth);
@@ -98,7 +130,7 @@ float4 frag (VOUT IN) : COLOR {
 	#ifdef PASS_FB
 		float3 SHDiffColor  = LightingCalc(IN.shmax , SHDiffuse , ShadeColor , ShadeMask);
 		       SHDiffColor  = saturate(SHDiffColor - IN.shmin) + IN.shmin;
-		if (_OcclusionMode == 0) SHDiffColor *= lerp(1.0f , tex2D(_OcclusionMap  , IN.uv).rgb , _OcclusionStrength);
+		if (_OcclusionMode == 0) SHDiffColor *= lerp(1.0f , UNITY_SAMPLE_TEX2D_SAMPLER(_OcclusionMap , _MainTex , SubUV).rgb , _OcclusionStrength);
 
 		float3 VL4Diff[4];
 		       VL4Diff[0]   = LightingCalc(VLight0 , VLDiffuse.x , ShadeColor , ShadeMask);
@@ -124,11 +156,9 @@ float4 frag (VOUT IN) : COLOR {
 	#endif
 
 	if (EmissionFlag) {
-		float2 EmissionUV  = IN.uv + IN.eprm.yz;
-		       EmissionUV  = MixingTransformTex(EmissionUV , _MainTex_ST , _EmissionMap_ST);
 		       Emission    = _Emission * _EmissionColor.rgb;
-		       Emission   *= tex2D(_EmissionMap  , EmissionUV).rgb * tex2D(_EmissionMap  , EmissionUV).a * IN.eprm.x;
-		       Emission   *= tex2D(_EmissionMap2 , IN.euv    ).rgb * tex2D(_EmissionMap2 , IN.euv    ).a;
+		       Emission   *= tex2D(_EmissionMap  , IN.euv.xy).rgb * tex2D(_EmissionMap  , IN.euv.xy).a * IN.eprm.x;
+		       Emission   *= tex2D(_EmissionMap2 , IN.euv.zw).rgb * tex2D(_EmissionMap2 , IN.euv.zw).a;
 
 		if (_EmissionLighting) {
 			#ifdef PASS_FB
@@ -149,13 +179,12 @@ float4 frag (VOUT IN) : COLOR {
 	#endif
 
 	if (ParallaxFlag) {
-		float  Height      = (1.0f - MonoColor(tex2D(_ParallaxDepthMap , IN.pduv).rgb)) * _ParallaxDepth;
-		float2 ParallaxUV  = IN.uv + IN.peprm.yz;
-		       ParallaxUV -= normalize(IN.pview).xz * Height;
-		       ParallaxUV  = MixingTransformTex(ParallaxUV , _MainTex_ST , _ParallaxMap_ST);
+		float  Height      = (1.0f - MonoColor(UNITY_SAMPLE_TEX2D_SAMPLER(_ParallaxDepthMap , _MainTex , IN.pduv).rgb)) * _ParallaxDepth;
+		float2 ParallaxUV  = IN.peuv.xy;
+		       ParallaxUV -= normalize(IN.pview).xz * Height * _ParallaxMap_ST.xy;
 		       Parallax    = _ParallaxEmission * _ParallaxColor.rgb;
 		       Parallax   *= tex2D(_ParallaxMap  , ParallaxUV).rgb * tex2D(_ParallaxMap  , ParallaxUV).a * IN.peprm.x;
-		       Parallax   *= tex2D(_ParallaxMap2 , IN.peuv   ).rgb * tex2D(_ParallaxMap2 , IN.peuv   ).a;
+		       Parallax   *= tex2D(_ParallaxMap2 , IN.peuv.zw).rgb * tex2D(_ParallaxMap2 , IN.peuv.zw).a;
 
 		if (_ParallaxLighting) {
 			#ifdef PASS_FB
@@ -176,7 +205,7 @@ float4 frag (VOUT IN) : COLOR {
 	if (_ReflectionEnable) {
 
 //----スペキュラ反射
-		       SpecularMask = tex2D(_MetallicGlossMap , IN.uv).rgb * tex2D(_MetallicGlossMap , IN.uv).a;
+		       SpecularMask = tex2D(_MetallicGlossMap , SubUV).rgb * tex2D(_MetallicGlossMap , SubUV).a;
 
 		float3 RLSpecular   = SpecularCalc(Normal , IN.ldir , IN.view , _GlossMapScale) * LightBase;
 
@@ -209,7 +238,7 @@ float4 frag (VOUT IN) : COLOR {
 //----マットキャップ
 		#ifdef PASS_FB
 			float2 MatCapUV     = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5f + 0.5f;
-			       MatCapture   = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
+			       MatCapture   = UNITY_SAMPLE_TEX2D_SAMPLER(_MatCap , _MainTex , MatCapUV).rgb * _MatCapStrength;
 
 			if (_MatCapLit == 1) MatCapture *= saturate(LightBase + VLightBase);
 			if (_MatCapLit == 2) MatCapture *= saturate(IN.shmax);
@@ -218,7 +247,7 @@ float4 frag (VOUT IN) : COLOR {
 		#ifdef PASS_FA
 			if ((_MatCapLit  == 1) || (_MatCapLit  == 3)) {
 				float2 MatCapUV    = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5f + 0.5f;
-				       MatCapture  = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
+				       MatCapture  = UNITY_SAMPLE_TEX2D_SAMPLER(_MatCap , _MainTex , MatCapUV).rgb * _MatCapStrength;
 				       MatCapture *= saturate(LightBase);
 			}
 		#endif
@@ -233,7 +262,7 @@ float4 frag (VOUT IN) : COLOR {
 	#ifdef PASS_FB
 		if (_RimLitEnable) {
 			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
-			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
+			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * UNITY_SAMPLE_TEX2D_SAMPLER(_RimLitMask , _MainTex , SubUV).rgb;
 			if (_RimLitLighthing) RimLight *= saturate(LightBase + IN.shmax + VLightBase);
 			if (_RimLitTexColor ) RimLight *= Color;
 		}
@@ -241,7 +270,7 @@ float4 frag (VOUT IN) : COLOR {
 	#ifdef PASS_FA
 		if (_RimLitEnable && _RimLitLighthing) {
 			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
-			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
+			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * UNITY_SAMPLE_TEX2D_SAMPLER(_RimLitMask , _MainTex , SubUV).rgb;
 			       RimLight *= saturate(LightBase);
 			if (_RimLitTexColor ) RimLight *= Color;
 		}
@@ -300,7 +329,7 @@ float4 frag (VOUT IN) : COLOR {
 	}
 
 //----オクルージョンマスク
-	if (_OcclusionMode == 2) OUT.rgb *= lerp(1.0f , tex2D(_OcclusionMap  , IN.uv).rgb , _OcclusionStrength);
+	if (_OcclusionMode == 2) OUT.rgb *= lerp(1.0f , UNITY_SAMPLE_TEX2D_SAMPLER(_OcclusionMap , _MainTex , SubUV).rgb , _OcclusionStrength);
 
 //----エミッションのテクスチャアルファ無視
 	#ifdef TRANSPARENT

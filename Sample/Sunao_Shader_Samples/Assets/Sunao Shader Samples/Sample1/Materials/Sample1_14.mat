@@ -172,9 +172,9 @@ Material:
     - _ToonEnable: 0
     - _ToonSharpness: 1
     - _Unlit: 0
-    - _VersionH: 0
-    - _VersionL: 0
-    - _VersionM: 0
+    - _VersionH: 1
+    - _VersionL: 2
+    - _VersionM: 2
     - _VertexColor: 0
     - _ZWrite: 1
     m_Colors:

@@ -12,15 +12,21 @@
 //-------------------------------------変数宣言
 
 //----Main
-	uniform sampler2D _MainTex;
+	UNITY_DECLARE_TEX2D(_MainTex);
 	uniform float4    _MainTex_ST;
 	uniform float4    _Color;
 	uniform float     _Cutout;
 	uniform float     _Alpha;
-	uniform sampler2D _AlphaMask;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_AlphaMask);
 	uniform float     _AlphaMaskStrength;
 	uniform float     _Bright;
 	uniform bool      _VertexColor;
+	uniform float     _UVScrollX;
+	uniform float     _UVScrollY;
+	uniform float     _UVAnimation;
+	uniform uint      _UVAnimX;
+	uniform uint      _UVAnimY;
+	uniform bool      _UVAnimOtherTex;
 
 //----Lighting
 	uniform float     _Unlit;
@@ -31,7 +37,7 @@
 	uniform sampler2D _OutLineMask;
 	uniform float4    _OutLineColor;
 	uniform float     _OutLineSize;
-	uniform sampler2D _OutLineTexture;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_OutLineTexture);
 	uniform bool      _OutLineLighthing;
 	uniform bool      _OutLineTexColor;
 	uniform bool      _OutLineFixScale;
@@ -73,8 +79,8 @@ struct VOUT {
 	float3 color   : TEXCOORD1;
 	float  mask    : TEXCOORD2;
 
-	LIGHTING_COORDS(4 , 5)
-	UNITY_FOG_COORDS(6)
+	LIGHTING_COORDS(3 , 4)
+	UNITY_FOG_COORDS(5)
 };
 
 
@@ -85,7 +91,25 @@ VOUT vert (VIN v) {
 	VOUT o;
 
 //----UV
-	o.uv    = TRANSFORM_TEX(v.uv, _MainTex);
+	o.uv    = (v.uv * _MainTex_ST.xy) + _MainTex_ST.zw;
+
+	if (_UVAnimOtherTex) {
+		float4 UVScr = float4(0.0f , 0.0f , 1.0f , 1.0f);
+
+		float4 UVAnim = float4(0.0f , 0.0f , 1.0f , 1.0f);
+
+		if (_UVAnimation > 0.0f) {
+			UVAnim.zw  = 1.0f / float2(_UVAnimX , _UVAnimY);
+
+			float2 UVAnimSpeed    = _UVAnimation * _UVAnimY;
+			       UVAnimSpeed.y *= -UVAnim.w;
+
+			UVAnim.xy += floor(frac(UVAnimSpeed * _Time.y) * float2(_UVAnimX , _UVAnimY));
+		}
+		
+		o.uv  = (o.uv + UVAnim.xy) * UVAnim.zw;
+		o.uv += float2(_UVScrollX , _UVScrollY) * _Time.y;
+	}
 
 //----アウトラインマスク
 	o.mask  = MonoColor(tex2Dlod(_OutLineMask , float4(o.uv , 0.0f , 0.0f)).rgb);
@@ -177,19 +201,19 @@ float4 frag (VOUT IN) : COLOR {
 //----カラー計算
 	float4 OUT          = float4(0.0f , 0.0f , 0.0f , 1.0f);
 
-	OUT.rgb = tex2D(_OutLineTexture , IN.uv) * IN.color;
+	OUT.rgb = UNITY_SAMPLE_TEX2D_SAMPLER(_OutLineTexture , _MainTex , IN.uv) * IN.color;
 
 	#ifdef PASS_OL_FA
 		if (_OutLineLighthing) OUT.rgb *= LIGHT_ATTENUATION(IN);
 	#endif
 
 	if (_OutLineTexColor) {
-	       OUT.rgb     *= tex2D(_MainTex , IN.uv);
+	       OUT.rgb     *= UNITY_SAMPLE_TEX2D(_MainTex , IN.uv);
 	}
 
 	#if defined(TRANSPARENT) || defined(CUTOUT)
-		OUT.a     = saturate(tex2D(_MainTex  , IN.uv).a * _Color.a * _Alpha);
-		OUT.a    *= lerp(1.0f , MonoColor(tex2D(_AlphaMask  , IN.uv).rgb) , _AlphaMaskStrength);
+		OUT.a     = saturate(UNITY_SAMPLE_TEX2D(_MainTex , IN.uv).a * _Color.a * _Alpha);
+		OUT.a    *= lerp(1.0f , MonoColor(UNITY_SAMPLE_TEX2D_SAMPLER(_AlphaMask , _MainTex , IN.uv).rgb) , _AlphaMaskStrength);
 	#endif
 
 //----カットアウト

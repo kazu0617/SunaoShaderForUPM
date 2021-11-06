@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.2.2
+//              Sunao Shader    Ver 1.3.0
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -14,8 +14,9 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 
 	Properties {
 
+		[NoScaleOffset]
 		_MainTex           ("Main Texture"              , 2D) = "white" {}
-		_Color             ("Color"                     , Color) = (1,1,1,1)
+		_Color             ("Color"                     ,  Color) = (1,1,1,1)
 		_Alpha             ("Alpha"                     , Range( 0.0,  2.0)) = 1.0
 		_Cutout            ("Cutout"                    , Range( 0.0,  1.0)) = 0.5
 
@@ -34,6 +35,32 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 		_AlphaMaskStrength ("Alpha Mask Strength"       , Range( 0.0,  1.0)) = 1.0
 		[SToggle]
 		_VertexColor       ("Use Vertex Color"          , int) = 0
+
+		_UVScrollX         ("Scroll X"                  , Range(-10.0, 10.0)) = 0.0
+		_UVScrollY         ("Scroll Y"                  , Range(-10.0, 10.0)) = 0.0
+		_UVAnimation       ("Animation Speed"           , Range(  0.0, 10.0)) = 0.0
+		_UVAnimX           ("Animation X Size"          , int) = 1
+		_UVAnimY           ("Animation Y Size"          , int) = 1
+		[SToggle]
+		_UVAnimOtherTex    ("Animation Other Maps"      , int) = 1
+
+		[SToggle]
+		_DecalEnable       ("Enable Decal"              , int) = 0
+		_DecalTex          ("Decal Texture"             , 2D) = "white" {}
+		_DecalColor        ("Decal Color"               ,  Color) = (1,1,1,1)
+		_DecalPosX         ("Position X"                , Range( 0.0, 1.0)) = 0.5
+		_DecalPosY         ("Position Y"                , Range( 0.0, 1.0)) = 0.5
+		_DecalSizeX        ("Size X"                    , Range( 0.0, 1.0)) = 0.5
+		_DecalSizeY        ("Size Y"                    , Range( 0.0, 1.0)) = 0.5
+		_DecalRotation     ("Rotation"                  , Range(-180.0, 180.0)) = 0.0
+		[Enum(Override , 0 ,Add , 1 , Multiply , 2 , Multiply(Mono) , 3)]
+		_DecalMode         ("Decal Mode"                , int) = 0
+
+		_DecalScrollX      ("Scroll X"                  , Range(-10.0, 10.0)) = 0.0
+		_DecalScrollY      ("Scroll Y"                  , Range(-10.0, 10.0)) = 0.0
+		_DecalAnimation    ("Animation Speed"           , Range(  0.0, 10.0)) = 0.0
+		_DecalAnimX        ("Animation X Size"          , int) = 1
+		_DecalAnimY        ("Animation Y Size"          , int) = 1
 
 
 		[NoScaleOffset]
@@ -90,6 +117,10 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 		_EmissionWaveform  ("Waveform"                  , int) = 0
 		_EmissionScrX      ("Scroll X"                  , Range(-10.0, 10.0)) = 0.0
 		_EmissionScrY      ("Scroll Y"                  , Range(-10.0, 10.0)) = 0.0
+		_EmissionAnimation ("Animation Speed"           , Range(  0.0, 10.0)) = 0.0
+		_EmissionAnimX     ("Animation X Size"          , int) = 1
+		_EmissionAnimY     ("Animation Y Size"          , int) = 1
+
 		[SToggle]
 		_EmissionLighting  ("Use Lighting"              , int) = 0
 		[SToggle]
@@ -116,6 +147,10 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 		_ParallaxPhaseOfs  ("Phase Offset"              , Range( 0.0,   1.0)) = 0.0
 		_ParallaxScrX      ("Scroll X"                  , Range(-10.0, 10.0)) = 0.0
 		_ParallaxScrY      ("Scroll Y"                  , Range(-10.0, 10.0)) = 0.0
+		_ParallaxAnimation ("Animation Speed"           , Range(  0.0, 10.0)) = 0.0
+		_ParallaxAnimX     ("Animation X Size"          , int) = 1
+		_ParallaxAnimY     ("Animation Y Size"          , int) = 1
+
 		[SToggle]
 		_ParallaxLighting  ("Use Lighting"              , int) = 0
 		[SToggle]
@@ -168,7 +203,7 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 
 
 		[Enum(Off , 0 , Back , 2 , Front , 1)]
-		_Culling           ("Culling"                   , int) = 1
+		_Culling           ("Culling"                   , int) = 2
 
 		[SToggle]
 		_EnableZWrite      ("Enable Z Write"            , int) = 1
@@ -195,7 +230,8 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 		_LimitterMax       ("Limitter Max"              , Range( 0.0,  5.0)) = 1.0
 
 
-		[HideInInspector] _MainFO          ("MainFO"            , int) = 0
+		[HideInInspector] _MainFO          ("Main FO"           , int) = 0
+		[HideInInspector] _DecalFO         ("Decal FO"          , int) = 0
 		[HideInInspector] _ShadingFO       ("Shading FO"        , int) = 0
 		[HideInInspector] _OutlineFO       ("Outline FO"        , int) = 0
 		[HideInInspector] _EmissionFO      ("Emission FO"       , int) = 0

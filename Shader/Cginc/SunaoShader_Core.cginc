@@ -14,23 +14,44 @@
 //-------------------------------------変数宣言
 
 //----Main
-	uniform sampler2D _MainTex;
+	UNITY_DECLARE_TEX2D(_MainTex);
 	uniform float4    _MainTex_ST;
 	uniform float4    _Color;
 	uniform float     _Cutout;
 	uniform float     _Alpha;
 	uniform sampler2D _BumpMap;
-	uniform sampler2D _OcclusionMap;
-	uniform sampler2D _AlphaMask;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_AlphaMask);
 	uniform float     _Bright;
 	uniform float     _BumpScale;
 	uniform float     _OcclusionStrength;
 	uniform float     _OcclusionMode;
 	uniform float     _AlphaMaskStrength;
 	uniform bool      _VertexColor;
+	uniform float     _UVScrollX;
+	uniform float     _UVScrollY;
+	uniform float     _UVAnimation;
+	uniform uint      _UVAnimX;
+	uniform uint      _UVAnimY;
+	uniform bool      _UVAnimOtherTex;
+	uniform bool      _DecalEnable;
+	uniform sampler2D _DecalTex;
+	uniform float4    _DecalTex_TexelSize;
+	uniform float4    _DecalColor;
+	uniform float     _DecalPosX;
+	uniform float     _DecalPosY;
+	uniform float     _DecalSizeX;
+	uniform float     _DecalSizeY;
+	uniform float     _DecalRotation;
+	uniform uint      _DecalMode;
+	uniform float     _DecalScrollX;
+	uniform float     _DecalScrollY;
+	uniform float     _DecalAnimation;
+	uniform uint      _DecalAnimX;
+	uniform uint      _DecalAnimY;
 
 //----Shading & Lighting
-	uniform sampler2D _ShadeMask;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_ShadeMask);
 	uniform float     _Shade;
 	uniform float     _ShadeWidth;
 	uniform float     _ShadeGradient;
@@ -58,6 +79,9 @@
 	uniform uint      _EmissionWaveform;
 	uniform float     _EmissionScrX;
 	uniform float     _EmissionScrY;
+	uniform float     _EmissionAnimation;
+	uniform uint      _EmissionAnimX;
+	uniform uint      _EmissionAnimY;
 	uniform bool      _EmissionLighting;
 	uniform bool      _IgnoreTexAlphaE;
 	uniform float     _EmissionInTheDark;
@@ -69,7 +93,7 @@
 	uniform float4    _ParallaxColor;
 	uniform float     _ParallaxEmission;
 	uniform float     _ParallaxDepth;
-	uniform sampler2D _ParallaxDepthMap;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_ParallaxDepthMap);
 	uniform float4    _ParallaxDepthMap_ST;
 	uniform sampler2D _ParallaxMap2;
 	uniform float4    _ParallaxMap2_ST;
@@ -80,6 +104,9 @@
 	uniform float     _ParallaxPhaseOfs;
 	uniform float     _ParallaxScrX;
 	uniform float     _ParallaxScrY;
+	uniform float     _ParallaxAnimation;
+	uniform uint      _ParallaxAnimX;
+	uniform uint      _ParallaxAnimY;
 	uniform bool      _ParallaxLighting;
 	uniform bool      _IgnoreTexAlphaPE;
 	uniform float     _ParallaxInTheDark;
@@ -87,7 +114,7 @@
 //----Reflection
 	uniform bool      _ReflectionEnable;
 	uniform sampler2D _MetallicGlossMap;
-	uniform sampler2D _MatCap;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
 	uniform float     _Specular;
 	uniform float     _Metallic;
 	uniform float     _MatCapStrength;
@@ -102,7 +129,7 @@
 
 //----Rim Lighting
 	uniform bool      _RimLitEnable;
-	uniform sampler2D _RimLitMask;
+	UNITY_DECLARE_TEX2D_NOSAMPLER(_RimLitMask);
 	uniform float     _RimLit;
 	uniform float     _RimLitGradient;
 	uniform float4    _RimLitColor;
@@ -147,21 +174,25 @@ struct VOUT {
 
 	float4 pos     : SV_POSITION;
 	float2 uv      : TEXCOORD0;
+	float4 uvanm   : TEXCOORD1;
+	float4 decal   : TEXCOORD2;
+	float4 decal2  : TEXCOORD3;
+	float4 decanm  : TEXCOORD4;
 	float3 normal  : NORMAL;
 	float3 color   : COLOR0;
 	float3 ldir    : LIGHTDIR0;
-	float3 view    : TEXCOORD1;
-	float4 toon    : TEXCOORD2;
-	float3 tanW    : TEXCOORD3;
-	float3 tanB    : TEXCOORD4;
-	float3 matcapv : TEXCOORD5;
-	float3 matcaph : TEXCOORD6;
-	float2 euv     : TEXCOORD7;
-	float3 eprm    : TEXCOORD8;
-	float2 peuv    : TEXCOORD9;
-	float2 pduv    : TEXCOORD10;
-	float3 peprm   : TEXCOORD11;
-	float3 pview   : TEXCOORD12;
+	float3 view    : TEXCOORD5;
+	float4 toon    : TEXCOORD6;
+	float3 tanW    : TEXCOORD7;
+	float3 tanB    : TEXCOORD8;
+	float3 matcapv : TEXCOORD9;
+	float3 matcaph : TEXCOORD10;
+	float4 euv     : TEXCOORD11;
+	float3 eprm    : TEXCOORD12;
+	float4 peuv    : TEXCOORD13;
+	float2 pduv    : TEXCOORD14;
+	float3 peprm   : TEXCOORD15;
+	float3 pview   : TEXCOORD16;
 
 	#ifdef PASS_FB
 		float3 shdir   : LIGHTDIR1;
@@ -170,13 +201,13 @@ struct VOUT {
 		float4 vldirX  : LIGHTDIR2;
 		float4 vldirY  : LIGHTDIR3;
 		float4 vldirZ  : LIGHTDIR4;
-		float4 vlcorr  : TEXCOORD13;
-		float4 vlatn   : TEXCOORD14;
+		float4 vlcorr  : TEXCOORD17;
+		float4 vlatn   : TEXCOORD18;
 	#endif
 
-	UNITY_FOG_COORDS(15)
+	UNITY_FOG_COORDS(19)
 	#ifdef PASS_FA
-		LIGHTING_COORDS(16 , 17)
+		LIGHTING_COORDS(20 , 21)
 	#endif
 
 };

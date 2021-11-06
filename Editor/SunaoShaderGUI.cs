@@ -29,6 +29,27 @@ namespace SunaoShader {
 		MaterialProperty OcclusionMode;
 		MaterialProperty AlphaMaskStrength;
 		MaterialProperty VertexColor;
+		MaterialProperty UVScrollX;
+		MaterialProperty UVScrollY;
+		MaterialProperty UVAnimation;
+		MaterialProperty UVAnimX;
+		MaterialProperty UVAnimY;
+		MaterialProperty UVAnimOtherTex;
+		MaterialProperty DecalEnable;
+		MaterialProperty DecalTex;
+		MaterialProperty DecalColor;
+		MaterialProperty DecalPosX;
+		MaterialProperty DecalPosY;
+		MaterialProperty DecalSizeX;
+		MaterialProperty DecalSizeY;
+		MaterialProperty DecalRotation;
+		MaterialProperty DecalMode;
+		MaterialProperty DecalScrollX;
+		MaterialProperty DecalScrollY;
+		MaterialProperty DecalAnimation;
+		MaterialProperty DecalAnimX;
+		MaterialProperty DecalAnimY;
+
 
 		MaterialProperty ShadeMask;
 		MaterialProperty Shade;
@@ -64,6 +85,9 @@ namespace SunaoShader {
 		MaterialProperty EmissionWaveform;
 		MaterialProperty EmissionScrX;
 		MaterialProperty EmissionScrY;
+		MaterialProperty EmissionAnimation;
+		MaterialProperty EmissionAnimX;
+		MaterialProperty EmissionAnimY;
 		MaterialProperty EmissionLighting;
 		MaterialProperty IgnoreTexAlphaE;
 		MaterialProperty EmissionInTheDark;
@@ -82,8 +106,11 @@ namespace SunaoShader {
 		MaterialProperty ParallaxPhaseOfs;
 		MaterialProperty ParallaxScrX;
 		MaterialProperty ParallaxScrY;
+		MaterialProperty ParallaxAnimation;
+		MaterialProperty ParallaxAnimX;
+		MaterialProperty ParallaxAnimY;
 		MaterialProperty ParallaxLighting;
-		MaterialProperty IgnoreTexAlphaPE;
+		MaterialProperty IgnoreTexAlphaPE;	 
 		MaterialProperty ParallaxInTheDark;
 
 		MaterialProperty ReflectionEnable;
@@ -129,6 +156,7 @@ namespace SunaoShader {
 
 
 		bool    MainFoldout       = false;
+		bool    DecalFoldout      = false;
 		bool    ShadingFoldout    = false;
 		bool    OutlineFoldout    = false;
 		bool    EmissionFoldout   = false;
@@ -140,8 +168,8 @@ namespace SunaoShader {
 		bool    OnceRun           = true;
 
 		int     Version_H         = 1;
-		int     Version_M         = 2;
-		int     Version_L         = 2;
+		int     Version_M         = 3;
+		int     Version_L         = 0;
 
 		int     VersionC          = 0;
 		int     VersionM          = 0;
@@ -167,6 +195,27 @@ namespace SunaoShader {
 			OcclusionMode     = FindProperty("_OcclusionMode"     , Prop , false);
 			AlphaMaskStrength = FindProperty("_AlphaMaskStrength" , Prop , false);
 			VertexColor       = FindProperty("_VertexColor"       , Prop , false);
+			UVScrollX         = FindProperty("_UVScrollX"         , Prop , false);
+			UVScrollY         = FindProperty("_UVScrollY"         , Prop , false);
+			UVAnimation       = FindProperty("_UVAnimation"       , Prop , false);
+			UVAnimX           = FindProperty("_UVAnimX"           , Prop , false);
+			UVAnimY           = FindProperty("_UVAnimY"           , Prop , false);
+			UVAnimOtherTex    = FindProperty("_UVAnimOtherTex"    , Prop , false);
+
+			DecalEnable       = FindProperty("_DecalEnable"       , Prop , false);
+			DecalTex          = FindProperty("_DecalTex"          , Prop , false);
+			DecalColor        = FindProperty("_DecalColor"        , Prop , false);
+			DecalPosX         = FindProperty("_DecalPosX"         , Prop , false);
+			DecalPosY         = FindProperty("_DecalPosY"         , Prop , false);
+			DecalSizeX        = FindProperty("_DecalSizeX"        , Prop , false);
+			DecalSizeY        = FindProperty("_DecalSizeY"        , Prop , false);
+			DecalRotation     = FindProperty("_DecalRotation"     , Prop , false);
+			DecalMode         = FindProperty("_DecalMode"         , Prop , false);
+			DecalScrollX      = FindProperty("_DecalScrollX"      , Prop , false);
+			DecalScrollY      = FindProperty("_DecalScrollY"      , Prop , false);
+			DecalAnimation    = FindProperty("_DecalAnimation"    , Prop , false);
+			DecalAnimX        = FindProperty("_DecalAnimX"        , Prop , false);
+			DecalAnimY        = FindProperty("_DecalAnimY"        , Prop , false);
 
 			ShadeMask         = FindProperty("_ShadeMask"         , Prop , false);
 			Shade             = FindProperty("_Shade"             , Prop , false);
@@ -204,6 +253,9 @@ namespace SunaoShader {
 			EmissionWaveform  = FindProperty("_EmissionWaveform"  , Prop , false);
 			EmissionScrX      = FindProperty("_EmissionScrX"      , Prop , false);
 			EmissionScrY      = FindProperty("_EmissionScrY"      , Prop , false);
+			EmissionAnimation = FindProperty("_EmissionAnimation" , Prop , false);
+			EmissionAnimX     = FindProperty("_EmissionAnimX"     , Prop , false);
+			EmissionAnimY     = FindProperty("_EmissionAnimY"     , Prop , false);
 			EmissionLighting  = FindProperty("_EmissionLighting"  , Prop , false);
 			IgnoreTexAlphaE   = FindProperty("_IgnoreTexAlphaE"   , Prop , false);
 			EmissionInTheDark = FindProperty("_EmissionInTheDark" , Prop , false);
@@ -222,6 +274,9 @@ namespace SunaoShader {
 			ParallaxPhaseOfs  = FindProperty("_ParallaxPhaseOfs"  , Prop , false);
 			ParallaxScrX      = FindProperty("_ParallaxScrX"      , Prop , false);
 			ParallaxScrY      = FindProperty("_ParallaxScrY"      , Prop , false);
+			ParallaxAnimation = FindProperty("_ParallaxAnimation" , Prop , false);
+			ParallaxAnimX     = FindProperty("_ParallaxAnimX"     , Prop , false);
+			ParallaxAnimY     = FindProperty("_ParallaxAnimY"     , Prop , false);
 			ParallaxLighting  = FindProperty("_ParallaxLighting"  , Prop , false);
 			IgnoreTexAlphaPE  = FindProperty("_IgnoreTexAlphaPE"  , Prop , false);
 			ParallaxInTheDark = FindProperty("_ParallaxInTheDark" , Prop , false);
@@ -305,14 +360,13 @@ namespace SunaoShader {
 				}
 			}
 
-
 			GUILayout.Label("Main", EditorStyles.boldLabel);
 
 			using (new EditorGUILayout.VerticalScope("box")) {
 
 				using (new EditorGUILayout.VerticalScope("box")) {
 
-					GUILayout.Label("Main Color", EditorStyles.boldLabel);
+					GUILayout.Label("Main Color & Texture Maps", EditorStyles.boldLabel);
 
 					ME.TexturePropertySingleLine (new GUIContent("Main Texture") , MainTex , Color);
 					ME.TextureScaleOffsetProperty(MainTex);
@@ -320,46 +374,98 @@ namespace SunaoShader {
 					if (Shader_Cutout     ) ME.ShaderProperty(Cutout , new GUIContent("Cutout"));
 					if (Shader_Transparent) ME.ShaderProperty(Alpha  , new GUIContent("Alpha" ));
 
-					
-				}
-
-				using (new EditorGUILayout.VerticalScope("box")) {
-
-					GUILayout.Label("Texture Maps", EditorStyles.boldLabel);
 
 					ME.TexturePropertySingleLine(new GUIContent("Normal Map") , BumpMap     );
 					ME.TexturePropertySingleLine(new GUIContent("Occlusion" ) , OcclusionMap);
 					if (Shader_Cutout || Shader_Transparent) ME.TexturePropertySingleLine(new GUIContent("Alpha Mask") , AlphaMask);
+
+
+					EditorGUI.indentLevel ++;
+
+					if (mat.GetInt("_MainFO") == 1) MainFoldout = true;
+					MainFoldout = EditorGUILayout.Foldout(MainFoldout , "Advanced Settings" , EditorStyles.boldFont);
+
+					if (MainFoldout) {
+						mat.SetInt("_MainFO" , 1);
+
+						ME.ShaderProperty(Bright , new GUIContent("Brightness"));
+
+						if (BumpMap.textureValue      != null) {
+							ME.ShaderProperty(BumpScale         , new GUIContent("Normal Map Scale"  ));
+						}
+						if (OcclusionMap.textureValue != null) {
+							ME.ShaderProperty(OcclusionStrength , new GUIContent("Occlusion Strength"));
+							ME.ShaderProperty(OcclusionMode     , new GUIContent("Occlusion Mode"    ));
+						}
+						if ((AlphaMask.textureValue   != null) && (Shader_Cutout || Shader_Transparent)) {
+							ME.ShaderProperty(AlphaMaskStrength , new GUIContent("Alpha Mask Strength"));
+						}
+
+						ME.ShaderProperty(VertexColor , new GUIContent("Use Vertex Color"  ));
+
+						ME.ShaderProperty(UVScrollX   , new GUIContent("Scroll X"          ));
+						ME.ShaderProperty(UVScrollY   , new GUIContent("Scroll Y"          ));
+						
+						ME.ShaderProperty(UVAnimation , new GUIContent("Animation Speed"   ));
+						if (UVAnimation.floatValue > 0.0f) {
+							ME.ShaderProperty(UVAnimX        , new GUIContent("Animation X Size"));
+							ME.ShaderProperty(UVAnimY        , new GUIContent("Animation Y Size"));
+						}
+						if (UVAnimX.floatValue < 1.0f) mat.SetInt("_UVAnimX" , 1);
+						if (UVAnimY.floatValue < 1.0f) mat.SetInt("_UVAnimY" , 1);
+						
+						ME.ShaderProperty(UVAnimOtherTex , new GUIContent("Animation Other Texture Maps"));
+
+					} else {
+						mat.SetInt("_MainFO" , 0);
+					}
+
+					EditorGUI.indentLevel --;
+
 				}
 
-				EditorGUI.indentLevel ++;
+				using (new EditorGUILayout.VerticalScope("box")) {
 
-				if (mat.GetInt("_MainFO") == 1) MainFoldout = true;
-				MainFoldout = EditorGUILayout.Foldout(MainFoldout , "Advanced Settings" , EditorStyles.boldFont);
+					GUILayout.Label("Decal", EditorStyles.boldLabel);
 
-				if (MainFoldout) {
-					mat.SetInt("_MainFO" , 1);
+					ME.ShaderProperty(DecalEnable , new GUIContent("Enable Decal"));
+					if (DecalEnable.floatValue >= 0.5f) {
+						ME.TexturePropertySingleLine (new GUIContent("Decal Texture") , DecalTex , DecalColor);
+						ME.ShaderProperty(DecalPosX        , new GUIContent("Position X"    ));
+						ME.ShaderProperty(DecalPosY        , new GUIContent("Position Y"    ));
+						ME.ShaderProperty(DecalSizeX       , new GUIContent("Scale X"       ));
+						ME.ShaderProperty(DecalSizeY       , new GUIContent("Scale Y"       ));
+						ME.ShaderProperty(DecalRotation    , new GUIContent("Rotation"      ));
 
-					ME.ShaderProperty(Bright , new GUIContent("Brightness"));
+						EditorGUI.indentLevel ++;
 
-					if (BumpMap.textureValue      != null) {
-						ME.ShaderProperty(BumpScale         , new GUIContent("Normal Map Scale"  ));
+						if (mat.GetInt("_DecalFO") == 1) DecalFoldout = true;
+						DecalFoldout = EditorGUILayout.Foldout(DecalFoldout , "Advanced Settings" , EditorStyles.boldFont);
+
+						if (DecalFoldout) {
+							mat.SetInt("_DecalFO" , 1);
+
+							ME.ShaderProperty(DecalMode        , new GUIContent("Decal Mode"      ));
+
+							ME.ShaderProperty(DecalScrollX     , new GUIContent("Scroll X"        ));
+							ME.ShaderProperty(DecalScrollY     , new GUIContent("Scroll Y"        ));
+
+							ME.ShaderProperty(DecalAnimation   , new GUIContent("Animation Speed" ));
+							if (DecalAnimation.floatValue > 0.0f) {
+								ME.ShaderProperty(DecalAnimX   , new GUIContent("Animation X Size"));
+								ME.ShaderProperty(DecalAnimY   , new GUIContent("Animation Y Size"));
+							}
+							if (DecalAnimX.floatValue < 1.0f) mat.SetInt("_DecalAnimX" , 1);
+							if (DecalAnimY.floatValue < 1.0f) mat.SetInt("_DecalAnimY" , 1);
+
+						} else {
+							mat.SetInt("_DecalFO" , 0);
+						}
+
+						EditorGUI.indentLevel --;
+
 					}
-					if (OcclusionMap.textureValue != null) {
-						ME.ShaderProperty(OcclusionStrength , new GUIContent("Occlusion Strength"));
-						ME.ShaderProperty(OcclusionMode     , new GUIContent("Occlusion Mode"    ));
-					}
-					if ((AlphaMask.textureValue   != null) && (Shader_Cutout || Shader_Transparent)) {
-						ME.ShaderProperty(AlphaMaskStrength , new GUIContent("Alpha Mask Strength"));
-					}
-
-					ME.ShaderProperty(VertexColor , new GUIContent("Use Vertex Color"  ));
-				} else {
-					mat.SetInt("_MainFO" , 0);
 				}
-
-				EditorGUI.indentLevel --;
-
 			}
 
 
@@ -399,7 +505,7 @@ namespace SunaoShader {
 					GUILayout.Label("Toon Shading", EditorStyles.boldLabel);
 
 					ME.ShaderProperty(ToonEnable , new GUIContent("Enable Toon Shading"));
-					if (mat.GetInt("_ToonEnable") == 1) {
+					if (ToonEnable.floatValue >= 0.5f) {
 						ME.ShaderProperty(Toon           , new GUIContent("Toon"           ));
 						ME.ShaderProperty(ToonSharpness  , new GUIContent("Toon Sharpness" ));
 					}
@@ -428,7 +534,7 @@ namespace SunaoShader {
 
 				ME.ShaderProperty(OutLineEnable , new GUIContent("Enable Outline"));
 
-				if (mat.GetInt("_OutLineEnable") == 1) {
+				if (OutLineEnable.floatValue >= 0.5f) {
 					ME.TexturePropertySingleLine(new GUIContent("Outline Mask") , OutLineMask);
 					ME.ShaderProperty(OutLineColor , new GUIContent("Outline Color"));
 					ME.ShaderProperty(OutLineSize  , new GUIContent("Outline Scale" ));
@@ -461,7 +567,7 @@ namespace SunaoShader {
 
 				ME.ShaderProperty(EmissionEnable , new GUIContent("Enable Emission"));
 
-				if (mat.GetInt("_EmissionEnable") == 1) {
+				if (EmissionEnable.floatValue >= 0.5f) {
 
 					ME.TexturePropertySingleLine(new GUIContent("Emission Mask") , EmissionMap);
 					if (EmissionMap.textureValue != null) {
@@ -487,13 +593,21 @@ namespace SunaoShader {
 						ME.ShaderProperty(EmissionMode      , new GUIContent("Emission Mode"   ));
 
 						ME.ShaderProperty(EmissionBlink     , new GUIContent("Blink"           ));
-						if (mat.GetFloat("_EmissionBlink") > 0) {
+						if (EmissionBlink.floatValue > 0.0f) {
 							ME.ShaderProperty(EmissionFrequency , new GUIContent("Frequency"   ));
 							ME.ShaderProperty(EmissionWaveform  , new GUIContent("Waveform"    ));
 						}
 
 						ME.ShaderProperty(EmissionScrX      , new GUIContent("Scroll X"        ));
 						ME.ShaderProperty(EmissionScrY      , new GUIContent("Scroll Y"        ));
+
+						ME.ShaderProperty(EmissionAnimation , new GUIContent("Animation Speed" ));
+						if (EmissionAnimation.floatValue > 0.0f) {
+							ME.ShaderProperty(EmissionAnimX , new GUIContent("Animation X Size"));
+							ME.ShaderProperty(EmissionAnimY , new GUIContent("Animation Y Size"));
+						}
+						if (EmissionAnimX.floatValue < 1.0f) mat.SetInt("_EmissionAnimX" , 1);
+						if (EmissionAnimY.floatValue < 1.0f) mat.SetInt("_EmissionAnimY" , 1);
 
 						ME.ShaderProperty(EmissionLighting , new GUIContent("Use Lighting"     ));
 
@@ -518,7 +632,7 @@ namespace SunaoShader {
 
 				ME.ShaderProperty(ParallaxEnable , new GUIContent("Enable Parallax Emission"));
 
-				if (mat.GetInt("_ParallaxEnable") == 1) {
+				if (ParallaxEnable.floatValue >= 0.5f) {
 
 					ME.TexturePropertySingleLine(new GUIContent("Parallax Emission Mask") , ParallaxMap);
 					if (ParallaxMap.textureValue != null) {
@@ -550,7 +664,7 @@ namespace SunaoShader {
 						ME.ShaderProperty(ParallaxMode      , new GUIContent("Emission Mode"   ));
 
 						ME.ShaderProperty(ParallaxBlink     , new GUIContent("Blink"           ));
-						if (mat.GetFloat("_ParallaxBlink") > 0) {
+						if (ParallaxBlink.floatValue > 0.0f) {
 							ME.ShaderProperty(ParallaxFrequency , new GUIContent("Frequency"   ));
 							ME.ShaderProperty(ParallaxWaveform  , new GUIContent("Waveform"    ));
 							ME.ShaderProperty(ParallaxPhaseOfs  , new GUIContent("Phase Offset"));
@@ -558,6 +672,14 @@ namespace SunaoShader {
 
 						ME.ShaderProperty(ParallaxScrX      , new GUIContent("Scroll X"        ));
 						ME.ShaderProperty(ParallaxScrY      , new GUIContent("Scroll Y"        ));
+
+						ME.ShaderProperty(ParallaxAnimation , new GUIContent("Animation Speed" ));
+						if (ParallaxAnimation.floatValue > 0.0f) {
+							ME.ShaderProperty(ParallaxAnimX , new GUIContent("Animation X Size"));
+							ME.ShaderProperty(ParallaxAnimY , new GUIContent("Animation Y Size"));
+						}
+						if (ParallaxAnimX.floatValue < 1.0f) mat.SetInt("_ParallaxAnimX" , 1);
+						if (ParallaxAnimY.floatValue < 1.0f) mat.SetInt("_ParallaxAnimY" , 1);
 
 						ME.ShaderProperty(ParallaxLighting , new GUIContent("Use Lighting"     ));
 
@@ -582,7 +704,7 @@ namespace SunaoShader {
 
 				ME.ShaderProperty(ReflectionEnable , new GUIContent("Enable Reflection"));
 
-				if (mat.GetInt("_ReflectionEnable") == 1) {
+				if (ReflectionEnable.floatValue >= 0.5f) {
 					ME.TexturePropertySingleLine(new GUIContent("Reflection Mask") , MetallicGlossMap);
 
 					using (new EditorGUILayout.VerticalScope("box")) {
@@ -641,7 +763,7 @@ namespace SunaoShader {
 
 				ME.ShaderProperty(RimLitEnable , new GUIContent("Enable Rim Lighting"));
 
-				if (mat.GetInt("_RimLitEnable") == 1) {
+				if (RimLitEnable.floatValue >= 0.5f) {
 
 					ME.TexturePropertySingleLine(new GUIContent("Rim Light Mask") , RimLitMask);
 					ME.ShaderProperty(RimLitColor , new GUIContent("Rim Light Color"));
@@ -724,7 +846,7 @@ namespace SunaoShader {
 						GUILayout.Label("Gamma Fix"    , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(EnableGammaFix   , new GUIContent("Enable Gamma Fix"));
-						if (mat.GetInt("_EnableGammaFix") == 1) {
+						if (EnableGammaFix.floatValue >= 0.5f) {
 							ME.ShaderProperty(GammaR , new GUIContent("Gamma R"));
 							ME.ShaderProperty(GammaG , new GUIContent("Gamma G"));
 							ME.ShaderProperty(GammaB , new GUIContent("Gamma B"));
@@ -737,7 +859,7 @@ namespace SunaoShader {
 						GUILayout.Label("Brightness Fix" , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(EnableBlightFix  , new GUIContent("Enable Brightness Fix"));
-						if (mat.GetInt("_EnableBlightFix") == 1) {
+						if (EnableBlightFix.floatValue >= 0.5f) {
 							ME.ShaderProperty(BlightOutput  , new GUIContent("Output Blightness"));
 							ME.ShaderProperty(BlightOffset  , new GUIContent("Blightness Offset"));
 						}
@@ -749,7 +871,7 @@ namespace SunaoShader {
 						GUILayout.Label("Output Limitter" , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(LimitterEnable    , new GUIContent("Enable Output Limitter"));
-						if (mat.GetInt("_LimitterEnable") == 1) {
+						if (LimitterEnable.floatValue >= 0.5f) {
 							ME.ShaderProperty(LimitterMax    , new GUIContent("Limitter Max"));
 						}
 					}
@@ -784,7 +906,6 @@ namespace SunaoShader {
 			if (Prop.floatValue >= 0.5f) IN = true;
 
 			var  OUT = EditorGUI.Toggle(Pos, Label, IN);
-			
 
 			if (OUT) {
 				Prop.floatValue = 1.0f;
