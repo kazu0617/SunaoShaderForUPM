@@ -8,6 +8,7 @@
 
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 using System.Linq;
 using System;
 
@@ -111,6 +112,7 @@ namespace SunaoShader {
 		MaterialProperty IgnoreTexAlphaRL;
 
 		MaterialProperty Culling;
+		MaterialProperty EnableZWrite;
 		MaterialProperty DirectionalLight;
 		MaterialProperty SHLight;
 		MaterialProperty PointLight;
@@ -135,10 +137,14 @@ namespace SunaoShader {
 		bool    RimLightFoldout   = false;
 		bool    OtherFoldout      = false;
 
+		bool    OnceRun           = true;
+
 		int     Version_H         = 1;
 		int     Version_M         = 2;
-		int     Version_L         = 1;
+		int     Version_L         = 2;
 
+		int     VersionC          = 0;
+		int     VersionM          = 0;
 
 		public override void OnGUI(MaterialEditor ME , MaterialProperty[] Prop) {
 
@@ -146,6 +152,7 @@ namespace SunaoShader {
 
 			bool Shader_Cutout      = mat.shader.name.Contains("Cutout");
 			bool Shader_Transparent = mat.shader.name.Contains("Transparent");
+
 
 			MainTex           = FindProperty("_MainTex"           , Prop , false);
 			Color             = FindProperty("_Color"             , Prop , false);
@@ -245,6 +252,7 @@ namespace SunaoShader {
 			IgnoreTexAlphaRL  = FindProperty("_IgnoreTexAlphaRL"  , Prop , false);
 
 			Culling           = FindProperty("_Culling"           , Prop , false);
+			EnableZWrite      = FindProperty("_EnableZWrite"      , Prop , false);
 			DirectionalLight  = FindProperty("_DirectionalLight"  , Prop , false);
 			SHLight           = FindProperty("_SHLight"           , Prop , false);
 			PointLight        = FindProperty("_PointLight"        , Prop , false);
@@ -260,19 +268,30 @@ namespace SunaoShader {
 			LimitterMax       = FindProperty("_LimitterMax"       , Prop , false);
 
 
-			int VersionC =  Version_H               * 10000 + Version_M               * 100 + Version_L;
-			int VersionM =  mat.GetInt("_VersionH") * 10000 + mat.GetInt("_VersionM") * 100 + mat.GetInt("_VersionL");
+			if (OnceRun) {
+				OnceRun = false;
 
-			if (VersionC > VersionM) {
-				mat.SetInt("_VersionH" , Version_H);
-				mat.SetInt("_VersionM" , Version_M);
-				mat.SetInt("_VersionL" , Version_L);
+				VersionC = Version_H               * 10000 + Version_M               * 100 + Version_L;
+				VersionM = mat.GetInt("_VersionH") * 10000 + mat.GetInt("_VersionM") * 100 + mat.GetInt("_VersionL");
+
+				if (VersionC > VersionM) {
+					mat.SetInt("_VersionH" , Version_H);
+					mat.SetInt("_VersionM" , Version_M);
+					mat.SetInt("_VersionL" , Version_L);
+					VersionM = VersionC;
+				}
+
+				var Keyword = new List<string>(mat.shaderKeywords);
+				foreach (string Key in Keyword) {
+					mat.DisableKeyword(Key);
+				}
 			}
+
 			if (VersionC < VersionM) {
 				using (new EditorGUILayout.VerticalScope("box")) {
 					EditorGUILayout.HelpBox(
 						"このマテリアルは現在お使いのSunao Shaderよりも新しいバージョン(" + mat.GetInt("_VersionH") + "." + mat.GetInt("_VersionM") + "." + mat.GetInt("_VersionL") + ")で作られています。\n" +
-						"そのためマテリアルの表現が一部おかしかったり設定値に互換性がない可能性があります。\n" +
+						"そのため一部表現が正しくなかったり設定値に互換がない可能性があります。\n" +
 						"新しいバージョンのSunao Shaderが公開されている場合はアップデートをおすすめします。\n" +
 						"現在お使いのSunao Shaderのバージョンは " + Version_H + "." + Version_M + "." + Version_L + " です。" ,
 						MessageType.Warning
@@ -281,6 +300,7 @@ namespace SunaoShader {
 						mat.SetInt("_VersionH" , Version_H);
 						mat.SetInt("_VersionM" , Version_M);
 						mat.SetInt("_VersionL" , Version_L);
+						VersionM = VersionC;
 					}
 				}
 			}
@@ -674,7 +694,7 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Culling Mode", EditorStyles.boldLabel);
+						GUILayout.Label("Culling Mode" , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(Culling , new GUIContent("Culling Mode"));
 
@@ -682,7 +702,15 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Lights", EditorStyles.boldLabel);
+						GUILayout.Label("Z Write"      , EditorStyles.boldLabel);
+
+						ME.ShaderProperty(EnableZWrite , new GUIContent("Enable Z Write"));
+
+					}
+
+					using (new EditorGUILayout.VerticalScope("box")) {
+
+						GUILayout.Label("Lights"       , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(DirectionalLight , new GUIContent("Directional Light Intensity"));
 						ME.ShaderProperty(SHLight          , new GUIContent("SH Light Intensity"         ));
@@ -693,7 +721,7 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Gamma Fix", EditorStyles.boldLabel);
+						GUILayout.Label("Gamma Fix"    , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(EnableGammaFix   , new GUIContent("Enable Gamma Fix"));
 						if (mat.GetInt("_EnableGammaFix") == 1) {
@@ -706,7 +734,7 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Brightness Fix"   , EditorStyles.boldLabel);
+						GUILayout.Label("Brightness Fix" , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(EnableBlightFix  , new GUIContent("Enable Brightness Fix"));
 						if (mat.GetInt("_EnableBlightFix") == 1) {
@@ -718,7 +746,7 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Output Limitter"   , EditorStyles.boldLabel);
+						GUILayout.Label("Output Limitter" , EditorStyles.boldLabel);
 
 						ME.ShaderProperty(LimitterEnable    , new GUIContent("Enable Output Limitter"));
 						if (mat.GetInt("_LimitterEnable") == 1) {
@@ -728,7 +756,7 @@ namespace SunaoShader {
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
-						GUILayout.Label("Render Queue"   , EditorStyles.boldLabel);
+						GUILayout.Label("Render Queue" , EditorStyles.boldLabel);
 
 						ME.RenderQueueField();
 					

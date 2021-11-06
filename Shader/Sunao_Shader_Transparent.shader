@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.2.1
+//              Sunao Shader    Ver 1.2.2
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -27,7 +27,7 @@ Shader "Sunao Shader/Transparent" {
 		_AlphaMask         ("Alpha Mask"                , 2D) = "white" {}
 
 		_Bright            ("Brightness"                , Range( 0.0,  1.0)) = 1.0
-		_BumpScale         ("Normal Map Scale"          , Range( 0.0,  2.0)) = 1.0
+		_BumpScale         ("Normal Map Scale"          , Range(-2.0,  2.0)) = 1.0
 		_OcclusionStrength ("Occlusion Strength"        , Range( 0.0,  1.0)) = 1.0
 		[Enum(SH Light, 0 , Main Texture , 1 , Final Color , 2)]
 		_OcclusionMode     ("Occlusion Mode    "        , int) = 0
@@ -168,7 +168,10 @@ Shader "Sunao Shader/Transparent" {
 
 
 		[Enum(Off , 0 , Back , 2 , Front , 1)]
-		_Culling           ("Culling"                   , int) = 2
+		_Culling           ("Culling"                   , int) = 1
+
+		[SToggle]
+		_EnableZWrite      ("Enable Z Write"            , int) = 1
 
 		_DirectionalLight  ("Directional Light"         , Range( 0.0,  2.0)) = 1.0
 		_SHLight           ("SH Light"                  , Range( 0.0,  2.0)) = 1.0
@@ -226,7 +229,7 @@ Shader "Sunao Shader/Transparent" {
 
 			Cull [_Culling]
 			Blend SrcAlpha OneMinusSrcAlpha
-			ZWrite On
+			ZWrite [_EnableZWrite]
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -251,7 +254,7 @@ Shader "Sunao Shader/Transparent" {
 
 			Cull Front
 			Blend SrcAlpha OneMinusSrcAlpha
-			ZWrite Off
+			ZWrite [_EnableZWrite]
 
 			CGPROGRAM
 			#pragma vertex vert

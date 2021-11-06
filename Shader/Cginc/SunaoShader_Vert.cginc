@@ -124,11 +124,11 @@ VOUT vert (VIN v) {
 
 //-------------------------------------ポイントライト
 	#ifdef PASS_FA
-		TRANSFER_VERTEX_TO_FRAGMENT(o)
+		TRANSFER_VERTEX_TO_FRAGMENT(o);
 	#endif
 
 //-------------------------------------フォグ
-	UNITY_TRANSFER_FOG(o,o.pos)
+	UNITY_TRANSFER_FOG(o,o.pos);
 
 
 	return o;
