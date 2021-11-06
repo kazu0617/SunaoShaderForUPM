@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.3.1
+//              Sunao Shader    Ver 1.3.2
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -179,6 +179,8 @@ Shader "Sunao Shader/[Stencil Outline]/Opaque" {
 		_MatCapTexColor    ("Tex Color for MatCap"      , int) = 0
 		[SToggle]
 		_SpecularSH        ("SH Light Specular"         , int) = 1
+		[SToggle]
+		_SpecularMask      ("Use Mask for Specular"     , int) = 1
 		[Enum(None , 0 , RealTime , 1 , SH , 2 , Both , 3)]
 		_ReflectLit        ("Light Color for Reflection", int) = 0
 		[Enum(None , 0 , RealTime , 1 , SH , 2 , Both , 3)]
@@ -242,6 +244,8 @@ Shader "Sunao Shader/[Stencil Outline]/Opaque" {
 		[HideInInspector] _ReflectionFO    ("Reflection FO"     , int) = 0
 		[HideInInspector] _RimLightingFO   ("Rim Lighting FO"   , int) = 0
 		[HideInInspector] _OtherSettingsFO ("Other Settings FO" , int) = 0
+
+		[HideInInspector] _SunaoShaderType ("ShaderType"        , int) = 0
 
 		[HideInInspector] _VersionH        ("Version H"         , int) = 0
 		[HideInInspector] _VersionM        ("Version M"         , int) = 0

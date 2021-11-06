@@ -161,11 +161,11 @@ VOUT vert (VIN v) {
 
 				float4 VLLength = VLightLength(VLDirX , VLDirY , VLDirZ);
 
-				float4 VLAtten  = VLightAtten(VLLength) * _PointLight * 0.9f;
-				Lighting += unity_LightColor[0].rgb * VLAtten.x;
-				Lighting += unity_LightColor[1].rgb * VLAtten.y;
-				Lighting += unity_LightColor[2].rgb * VLAtten.z;
-				Lighting += unity_LightColor[3].rgb * VLAtten.w;
+				float4 VLAtten  = VLightAtten(VLLength) * _PointLight;
+				Lighting += unity_LightColor[0].rgb * VLAtten.x * 0.6f;
+				Lighting += unity_LightColor[1].rgb * VLAtten.y * 0.6f;
+				Lighting += unity_LightColor[2].rgb * VLAtten.z * 0.6f;
+				Lighting += unity_LightColor[3].rgb * VLAtten.w * 0.6f;
 
 			#endif
 		#endif
@@ -174,7 +174,7 @@ VOUT vert (VIN v) {
 			Lighting += _LightColor0 * _DirectionalLight;
 		#endif
 		#ifdef PASS_OL_FA
-			Lighting += _LightColor0 * _PointLight * 0.9f;
+			Lighting += _LightColor0 * _PointLight * 0.6f;
 		#endif
 
 		if (_LightLimitter) Lighting = saturate(Lighting);

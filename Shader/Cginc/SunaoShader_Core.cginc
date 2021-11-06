@@ -124,6 +124,7 @@
 	uniform bool      _MetallicTexColor;
 	uniform bool      _MatCapTexColor;
 	uniform bool      _SpecularSH;
+	uniform float     _SpecularMask;
 	uniform uint      _ReflectLit;
 	uniform uint      _MatCapLit;
 	uniform bool      _IgnoreTexAlphaR;

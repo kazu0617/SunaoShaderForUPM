@@ -125,6 +125,7 @@ namespace SunaoShader {
 		MaterialProperty MetallicTexColor;
 		MaterialProperty MatCapTexColor;
 		MaterialProperty SpecularSH;
+		MaterialProperty SpecularMask;
 		MaterialProperty ReflectLit;
 		MaterialProperty MatCapLit;
 		MaterialProperty IgnoreTexAlphaR;
@@ -170,7 +171,7 @@ namespace SunaoShader {
 
 		int     Version_H         = 1;
 		int     Version_M         = 3;
-		int     Version_L         = 1;
+		int     Version_L         = 2;
 
 		int     VersionC          = 0;
 		int     VersionM          = 0;
@@ -294,6 +295,7 @@ namespace SunaoShader {
 			MetallicTexColor  = FindProperty("_MetallicTexColor"  , Prop , false);
 			MatCapTexColor    = FindProperty("_MatCapTexColor"    , Prop , false);
 			SpecularSH        = FindProperty("_SpecularSH"        , Prop , false);
+			SpecularMask      = FindProperty("_SpecularMask"      , Prop , false);
 			ReflectLit        = FindProperty("_ReflectLit"        , Prop , false);
 			MatCapLit         = FindProperty("_MatCapLit"         , Prop , false);
 			IgnoreTexAlphaR   = FindProperty("_IgnoreTexAlphaR"   , Prop , false);
@@ -327,6 +329,16 @@ namespace SunaoShader {
 
 			if (OnceRun) {
 				OnceRun = false;
+
+				if ((Shader_Cutout == false) && (Shader_Transparent == false)) {
+					mat.SetInt ("_SunaoShaderType" , 0);
+				}
+				if (Shader_Transparent == true) {
+					mat.SetInt ("_SunaoShaderType" , 1);
+				}
+				if (Shader_Cutout == true) {
+					mat.SetInt ("_SunaoShaderType" , 2);
+				}
 
 				VersionC = Version_H               * 10000 + Version_M               * 100 + Version_L;
 				VersionM = mat.GetInt("_VersionH") * 10000 + mat.GetInt("_VersionM") * 100 + mat.GetInt("_VersionL");
@@ -743,6 +755,7 @@ namespace SunaoShader {
 						ME.ShaderProperty(MetallicTexColor , new GUIContent("Use Main Texture for Metallic"));
 						ME.ShaderProperty(MatCapTexColor   , new GUIContent("Use Main Texture for MatCap"  ));
 						ME.ShaderProperty(SpecularSH       , new GUIContent("SH Light Specular"            ));
+						ME.ShaderProperty(SpecularMask     , new GUIContent("Use Mask Color for Specular"  ));
 						ME.ShaderProperty(ReflectLit       , new GUIContent("Use Light Color for Metallic" ));
 						ME.ShaderProperty(MatCapLit        , new GUIContent("Use Light Color for MatCap"   ));
 

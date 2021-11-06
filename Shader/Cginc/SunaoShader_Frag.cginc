@@ -124,14 +124,14 @@ float4 frag (VOUT IN) : COLOR {
 //-------------------------------------ライティング
 	#ifdef PASS_FB
 		float3 LightBase    = _LightColor0 * _DirectionalLight;
-		float3 VLight0      = unity_LightColor[0].rgb * IN.vlatn.x;
-		float3 VLight1      = unity_LightColor[1].rgb * IN.vlatn.y;
-		float3 VLight2      = unity_LightColor[2].rgb * IN.vlatn.z;
-		float3 VLight3      = unity_LightColor[3].rgb * IN.vlatn.w;
+		float3 VLight0      = unity_LightColor[0].rgb * IN.vlatn.x * 0.6f;
+		float3 VLight1      = unity_LightColor[1].rgb * IN.vlatn.y * 0.6f;
+		float3 VLight2      = unity_LightColor[2].rgb * IN.vlatn.z * 0.6f;
+		float3 VLight3      = unity_LightColor[3].rgb * IN.vlatn.w * 0.6f;
 		float3 VLightBase   = saturate(VLight0 + VLight1 + VLight2 + VLight3);
 	#endif
 	#ifdef PASS_FA
-		float3 LightBase    = _LightColor0 * LIGHT_ATTENUATION(IN) * _PointLight * 0.9f;
+		float3 LightBase    = _LightColor0 * LIGHT_ATTENUATION(IN) * _PointLight * 0.6f;
 	#endif
 
 //----モノクロライティング
@@ -222,31 +222,36 @@ float4 frag (VOUT IN) : COLOR {
 
 //-------------------------------------リフレクション
 	float3 SpecularMask = (float3)0.0f;
+	float3 ReflectMask  = (float3)0.0f;
 	float3 Specular     = (float3)0.0f;
 	float3 Reflection   = (float3)0.0f;
 	float3 MatCapture   = (float3)0.0f;
 
 	if (_ReflectionEnable) {
+		float  Smoothness   = _GlossMapScale * tex2D(_MetallicGlossMap , SubUV).a;
 
 //----スペキュラ反射
-		       SpecularMask = tex2D(_MetallicGlossMap , SubUV).rgb * tex2D(_MetallicGlossMap , SubUV).a;
+		       SpecularMask = tex2D(_MetallicGlossMap , SubUV).rgb;
+		       SpecularMask = lerp(1.0f , SpecularMask , _SpecularMask);
 
-		float3 RLSpecular   = SpecularCalc(Normal , IN.ldir , IN.view , _GlossMapScale) * LightBase;
+		float3 RLSpecular   = SpecularCalc(Normal , IN.ldir , IN.view , Smoothness) * LightBase;
 
 		#ifdef PASS_FB
 			float3 SHSpecular   = (float3)0.0f;
 			if (_SpecularSH) {
-			       SHSpecular   = SpecularCalc(Normal , IN.shdir , IN.view , _GlossMapScale) * IN.shmax;
+			       SHSpecular   = SpecularCalc(Normal , IN.shdir , IN.view , Smoothness) * IN.shmax;
 			}
-			       Specular     = (RLSpecular + SHSpecular) * _Specular * ((_GlossMapScale * _GlossMapScale * _GlossMapScale) + 0.25f);
+			       Specular     = (RLSpecular + SHSpecular) * _Specular * ((Smoothness * Smoothness * Smoothness) + 0.25f);
 		#endif
 		#ifdef PASS_FA
-			       Specular     =  RLSpecular               * _Specular * ((_GlossMapScale * _GlossMapScale * _GlossMapScale) + 0.25f);
+			       Specular     =  RLSpecular               * _Specular * ((Smoothness * Smoothness * Smoothness) + 0.25f);
 		#endif
 
 //----環境マッピング
+		       ReflectMask  = tex2D(_MetallicGlossMap , SubUV).rgb;
+
 		#ifdef PASS_FB
-			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
+			       Reflection   = ReflectionCalc(Normal , IN.view , Smoothness);
 
 			if (_ReflectLit == 1) Reflection *= saturate(LightBase + VLightBase);
 			if (_ReflectLit == 2) Reflection *= saturate(IN.shmax);
@@ -254,7 +259,7 @@ float4 frag (VOUT IN) : COLOR {
 		#endif
 		#ifdef PASS_FA
 			if ((_ReflectLit == 1) || (_ReflectLit == 3)) {
-			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
+			       Reflection   = ReflectionCalc(Normal , IN.view , Smoothness);
 				   Reflection  *= saturate(LightBase);
 			}
 		#endif
@@ -303,7 +308,9 @@ float4 frag (VOUT IN) : COLOR {
 //-------------------------------------最終カラー計算
 	       OUT.rgb      = Color * Lighting;
 	       OUT.rgb      = lerp(OUT.rgb , Color , _Unlit);
-	       OUT.rgb      = lerp(OUT.rgb , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask);
+	       OUT.rgb      = lerp(OUT.rgb , Reflection , _Metallic * ReflectMask);
+	       OUT.rgb     += Specular   * SpecularMask;
+	       OUT.rgb     += MatCapture * ReflectMask;
 
 //----リムライティング混合
 	if (_RimLitEnable) {
@@ -327,7 +334,7 @@ float4 frag (VOUT IN) : COLOR {
 		if (_EmissionMode == 0) OUT.rgb += Emission;
 		if (_EmissionMode == 1) {
 			OUT.rgb *= saturate(1.0f - Emission);
-			OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Emission;
+			OUT.rgb += (lerp(Color , Reflection , (_Metallic * ReflectMask)) + ((Specular + MatCapture) * SpecularMask)) * Emission;
 		}
 		if (_EmissionMode == 2) OUT.rgb  = saturate(OUT.rgb - Emission);
 	}
@@ -347,7 +354,7 @@ float4 frag (VOUT IN) : COLOR {
 		if (_ParallaxMode == 0) OUT.rgb += Parallax;
 		if (_ParallaxMode == 1) {
 			OUT.rgb *= saturate(1.0f - Parallax);
-			OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Parallax;
+			OUT.rgb += (lerp(Color , Reflection , (_Metallic * ReflectMask)) + ((Specular + MatCapture) * SpecularMask)) * Parallax;
 		}
 		if (_ParallaxMode == 2) OUT.rgb  = saturate(OUT.rgb - Parallax);
 	}
@@ -372,10 +379,9 @@ float4 frag (VOUT IN) : COLOR {
 //----リフレクションのテクスチャアルファ無視
 		if (_ReflectionEnable && _IgnoreTexAlphaR) {
 			float ReflectionAlpha  = 0.0f;
-			      ReflectionAlpha += MonoColor(Reflection) * _Metallic;
-			      ReflectionAlpha += MonoColor(Specular);
-			      ReflectionAlpha += MonoColor(MatCapture);
-			      ReflectionAlpha *= SpecularMask;
+			      ReflectionAlpha += MonoColor(Reflection) * ReflectMask * _Metallic;
+			      ReflectionAlpha += MonoColor(Specular)   * SpecularMask;
+			      ReflectionAlpha += MonoColor(MatCapture) * ReflectMask;
 			OUT.a = saturate(OUT.a + ReflectionAlpha);
 		}
 
