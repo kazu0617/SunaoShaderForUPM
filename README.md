@@ -3,13 +3,13 @@
 このパッケージは、MIT License のもと公開されているSunaoShaderをUPMで使用できるよう、kazu0617がGitHubに上げなおしたものになります。
 UPMを活用して使用する場合は、 https://docs.unity3d.com/ja/current/Manual/upm-ui-giturl.html を参考にしつつgiturlを指定してください。
 
-このバージョンを指定する場合は https://github.com/kazu0617/SunaoShaderForUPM#1.1.0 となります。
+このバージョンを指定する場合は https://github.com/kazu0617/SunaoShaderForUPM#1.2.1 となります。
 
 以下、公式のReadme.txtを記載します。
 
 ```txt
 //-----------------------------------------------------------------------------
-//              Sunao Shader    Ver 1.2.0
+//              Sunao Shader    Ver 1.2.1
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC

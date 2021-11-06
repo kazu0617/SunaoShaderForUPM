@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //              Sunao Shader GUI
-//                      Copyright (c) 2020 �g�֎q������
+//                      Copyright (c) 2020 揚茄子研究所
 //
 // This software is released under the MIT License.
 // see LICENSE or http://sunao.orz.hm/agenasulab/ss/LICENSE
@@ -137,7 +137,7 @@ namespace SunaoShader {
 
 		int     Version_H         = 1;
 		int     Version_M         = 2;
-		int     Version_L         = 0;
+		int     Version_L         = 1;
 
 
 		public override void OnGUI(MaterialEditor ME , MaterialProperty[] Prop) {
@@ -258,6 +258,32 @@ namespace SunaoShader {
 			BlightOffset      = FindProperty("_BlightOffset"      , Prop , false);
 			LimitterEnable    = FindProperty("_LimitterEnable"    , Prop , false);
 			LimitterMax       = FindProperty("_LimitterMax"       , Prop , false);
+
+
+			int VersionC =  Version_H               * 10000 + Version_M               * 100 + Version_L;
+			int VersionM =  mat.GetInt("_VersionH") * 10000 + mat.GetInt("_VersionM") * 100 + mat.GetInt("_VersionL");
+
+			if (VersionC > VersionM) {
+				mat.SetInt("_VersionH" , Version_H);
+				mat.SetInt("_VersionM" , Version_M);
+				mat.SetInt("_VersionL" , Version_L);
+			}
+			if (VersionC < VersionM) {
+				using (new EditorGUILayout.VerticalScope("box")) {
+					EditorGUILayout.HelpBox(
+						"このマテリアルは現在お使いのSunao Shaderよりも新しいバージョン(" + mat.GetInt("_VersionH") + "." + mat.GetInt("_VersionM") + "." + mat.GetInt("_VersionL") + ")で作られています。\n" +
+						"そのためマテリアルの表現が一部おかしかったり設定値に互換性がない可能性があります。\n" +
+						"新しいバージョンのSunao Shaderが公開されている場合はアップデートをおすすめします。\n" +
+						"現在お使いのSunao Shaderのバージョンは " + Version_H + "." + Version_M + "." + Version_L + " です。" ,
+						MessageType.Warning
+					);
+					if (GUILayout.Button("無視する")) {
+						mat.SetInt("_VersionH" , Version_H);
+						mat.SetInt("_VersionM" , Version_M);
+						mat.SetInt("_VersionL" , Version_L);
+					}
+				}
+			}
 
 
 			GUILayout.Label("Main", EditorStyles.boldLabel);
@@ -713,12 +739,6 @@ namespace SunaoShader {
 				}
 			}
 
-
-			if ((mat.GetInt("_VersionH") < Version_H) || (mat.GetInt("_VersionM") < Version_M) || (mat.GetInt("_VersionL") < Version_L)) {
-				mat.SetInt("_VersionH" , Version_H);
-				mat.SetInt("_VersionM" , Version_M);
-				mat.SetInt("_VersionL" , Version_L);
-			}
 
 			EditorGUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();

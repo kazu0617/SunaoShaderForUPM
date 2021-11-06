@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.2.0
+//              Sunao Shader    Ver 1.2.1
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -288,7 +288,7 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 			}
 
 			Cull Front
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha One
 			ZWrite Off
 
 			Stencil {
@@ -318,7 +318,7 @@ Shader "Sunao Shader/[Stencil Outline]/Transparent" {
 			}
 
 			Cull [_Culling]
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha One
 			ZWrite Off
 
 			CGPROGRAM
