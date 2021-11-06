@@ -16,13 +16,18 @@
 //----Main
 	uniform sampler2D _MainTex;
 	uniform float4    _MainTex_ST;
-	uniform fixed4    _Color;
-	uniform float     _Bright;
+	uniform float4    _Color;
 	uniform float     _Cutout;
 	uniform float     _Alpha;
-	uniform bool      _VertexColor;
 	uniform sampler2D _BumpMap;
+	uniform sampler2D _OcclusionMap;
+	uniform sampler2D _AlphaMask;
+	uniform float     _Bright;
 	uniform float     _BumpScale;
+	uniform float     _OcclusionStrength;
+	uniform float     _OcclusionMode;
+	uniform float     _AlphaMaskStrength;
+	uniform bool      _VertexColor;
 
 //----Shading & Lighting
 	uniform sampler2D _ShadeMask;
@@ -30,7 +35,7 @@
 	uniform float     _ShadeWidth;
 	uniform float     _ShadeGradient;
 	uniform float     _ShadeColor;
-	uniform fixed4    _CustomShadeColor;
+	uniform float4    _CustomShadeColor;
 	uniform bool      _ToonEnable;
 	uniform uint      _Toon;
 	uniform sampler2D _LightMask;
@@ -42,7 +47,7 @@
 	uniform bool      _EmissionEnable;
 	uniform sampler2D _EmissionMap;
 	uniform float4    _EmissionMap_ST;
-	uniform fixed4    _EmissionColor;
+	uniform float4    _EmissionColor;
 	uniform float     _Emission;
 	uniform sampler2D _EmissionMap2;
 	uniform float4    _EmissionMap2_ST;
@@ -52,6 +57,7 @@
 	uniform uint      _EmissionWaveform;
 	uniform float     _EmissionScrX;
 	uniform float     _EmissionScrY;
+	uniform bool      _IgnoreTexAlphaE;
 	uniform float     _EmissionInTheDark;
 
 //----Reflection
@@ -75,10 +81,11 @@
 	uniform sampler2D _RimLitMask;
 	uniform float     _RimLit;
 	uniform float     _RimLitGradient;
-	uniform fixed4    _RimLitColor;
+	uniform float4    _RimLitColor;
 	uniform bool      _RimLitLighthing;
 	uniform bool      _RimLitTexColor;
 	uniform uint      _RimLitMode;
+	uniform bool      _IgnoreTexAlphaRL;
 
 //----Other
 	uniform float     _DirectionalLight;
@@ -106,7 +113,7 @@ struct VIN {
 	float2 uv      : TEXCOORD;
 	float3 normal  : NORMAL;
 	float4 tangent : TANGENT;
-	fixed3 color   : COLOR;
+	float3 color   : COLOR;
 };
 
 
@@ -117,7 +124,7 @@ struct VOUT {
 	float4 pos     : SV_POSITION;
 	float2 uv      : TEXCOORD0;
 	float3 normal  : NORMAL;
-	fixed3 color   : COLOR0;
+	float3 color   : COLOR0;
 	float3 ldir    : LIGHTDIR0;
 	float3 view    : TEXCOORD1;
 	float2 toon    : TEXCOORD2;
@@ -128,8 +135,8 @@ struct VOUT {
 
 	#ifdef PASS_FB
 		float3 shdir   : LIGHTDIR1;
-		fixed3 shmax   : COLOR1;
-		fixed3 shmin   : COLOR2;
+		float3 shmax   : COLOR1;
+		float3 shmin   : COLOR2;
 		float4 vldirX  : LIGHTDIR2;
 		float4 vldirY  : LIGHTDIR3;
 		float4 vldirZ  : LIGHTDIR4;
@@ -137,12 +144,12 @@ struct VOUT {
 		float4 vlatn   : TEXCOORD8;
 		float4 euv     : TEXCOORD9;
 		float3 eprm    : TEXCOORD10;
-		UNITY_FOG_COORDS(11)
+		UNITY_FOG_COORDS(21)
 	#endif
 
 	#ifdef PASS_FA
-		LIGHTING_COORDS(7,8)
-		UNITY_FOG_COORDS(9)
+		LIGHTING_COORDS(11 , 12)
+		UNITY_FOG_COORDS(13)
 	#endif
 
 };

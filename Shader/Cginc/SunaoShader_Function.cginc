@@ -10,8 +10,8 @@ float3 SHLightDirection(float len[6]) {
 }
 
 //-------------------------------------明るいSHライトを取得
-fixed3 SHLightMax(fixed3 col[6]) {
-	fixed3 ocol;
+float3 SHLightMax(float3 col[6]) {
+	float3 ocol;
 	ocol =            col[0];
 	ocol = max(ocol , col[1]);
 	ocol = max(ocol , col[2]);
@@ -23,12 +23,12 @@ fixed3 SHLightMax(fixed3 col[6]) {
 }
 
 //-------------------------------------暗いSHライトを取得
-fixed3 SHLightMin(fixed3 col[6]) {
+float3 SHLightMin(float3 col[6]) {
 	return (col[0] + col[1] + col[2] + col[3] + col[4] + col[5]) * 0.166667f; // 0.166667 = 1/6
 }
 
 //-------------------------------------モノクロカラーに変換
-fixed3 MonoColor(fixed3 col) {
+float  MonoColor(float3 col) {
 	return (0.2126f * col.r) + (0.7152f * col.g) + (0.0722f * col.b); //BT.709
 }
 
@@ -73,7 +73,7 @@ float2 EmissionWave(uint mode , float blink , float freq) {
 }
 
 //-------------------------------------ディフューズシェーディングの計算
-float DiffuseCalc(float3 normal , float3 ldir , float gradient , float width) {
+float  DiffuseCalc(float3 normal , float3 ldir , float gradient , float width) {
 	float diffuse;
 	diffuse = ((dot(normal , ldir) - 0.5f) * (gradient + 0.000001f)) + 1.5f - width;
 
@@ -81,13 +81,13 @@ float DiffuseCalc(float3 normal , float3 ldir , float gradient , float width) {
 }
 
 //-------------------------------------トゥーンシェーディングの計算
-float ToonCalc(float diffuse , float2 toon) {
+float  ToonCalc(float diffuse , float2 toon) {
 	return saturate(floor(diffuse * toon.x) * toon.y);
 }
 
 //-------------------------------------ライトの計算
-fixed3 LightingCalc(fixed3 light , float diffuse , fixed3 shadecol , float shademask) {
-	fixed3 col;
+float3 LightingCalc(float3 light , float diffuse , float3 shadecol , float shademask) {
+	float3 col;
 	col = lerp(light * shadecol , light, diffuse  );
 	col = lerp(light            , col  , shademask);
 
@@ -95,17 +95,17 @@ fixed3 LightingCalc(fixed3 light , float diffuse , fixed3 shadecol , float shade
 }
 
 //-------------------------------------スペキュラ反射の計算
-fixed3 SpecularCalc(float3 normal , float3 ldir , float3 view , float scale) {
+float3 SpecularCalc(float3 normal , float3 ldir , float3 view , float scale) {
 	float3 hv = normalize(ldir  + view);
 	float  specular;
-	specular = pow(saturate(dot(hv , normal)) , (1.0f / (1.005f - scale))) * (scale * scale + 0.5f);
+	specular = pow(saturate(dot(hv , normal)) , (1.0f / (1.005f - scale))) * (scale * scale * scale + 0.5f);
 	specular = saturate(specular * specular * specular);
 
 	return specular;
 }
 
 //-------------------------------------環境マッピングの計算
-fixed3 ReflectionCalc(float3 normal , float3 view , float scale) {
+float3 ReflectionCalc(float3 normal , float3 view , float scale) {
 	float3 dir = reflect(-view , normal);
 	float3 refl;
 	refl = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0 , dir, (1.0f - scale) * 7.0f) , unity_SpecCube0_HDR);
@@ -114,9 +114,9 @@ fixed3 ReflectionCalc(float3 normal , float3 view , float scale) {
 }
 
 //-------------------------------------リムライトの計算
-float RimLightCalc(float3 normal , float3 view , float power , float gradient) {
+float  RimLightCalc(float3 normal , float3 view , float power , float gradient) {
 	float orim;
-	orim  = saturate(1.0f - saturate(dot(view , normal)));
+	orim  = saturate(1.0f - abs(dot(view , normal)));
 	orim *= orim;
 	orim  = saturate(((orim - 0.5f) * gradient * gradient * gradient) + 0.5f);
 	orim  = saturate(orim + ((power * 0.5f) - 0.5f) * 2.0f);

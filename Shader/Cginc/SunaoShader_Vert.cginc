@@ -19,7 +19,7 @@ VOUT vert (VIN v) {
 	o.normal  = v.normal;
 
 //-------------------------------------頂点カラー
-	o.color   = (fixed3)1.0f;
+	o.color   = (float3)1.0f;
 	if (_VertexColor) o.color = v.color;
 
 //-------------------------------------ライト方向
@@ -36,35 +36,35 @@ VOUT vert (VIN v) {
 
 //-------------------------------------SHライト
 	#ifdef PASS_FB
-		fixed3 SHColor[6];
-		SHColor[0] = ShadeSH9(float4(-1.0f ,  0.0f ,  0.0f , 1.0f));
-		SHColor[1] = ShadeSH9(float4( 1.0f ,  0.0f ,  0.0f , 1.0f));
-		SHColor[2] = ShadeSH9(float4( 0.0f , -1.0f ,  0.0f , 1.0f));
-		SHColor[3] = ShadeSH9(float4( 0.0f ,  1.0f ,  0.0f , 1.0f));
-		SHColor[4] = ShadeSH9(float4( 0.0f ,  0.0f , -1.0f , 1.0f));
-		SHColor[5] = ShadeSH9(float4( 0.0f ,  0.0f ,  1.0f , 1.0f));
+		float3 SHColor[6];
+		SHColor[0]   = ShadeSH9(float4(-1.0f ,  0.0f ,  0.0f , 1.0f));
+		SHColor[1]   = ShadeSH9(float4( 1.0f ,  0.0f ,  0.0f , 1.0f));
+		SHColor[2]   = ShadeSH9(float4( 0.0f , -1.0f ,  0.0f , 1.0f));
+		SHColor[3]   = ShadeSH9(float4( 0.0f ,  1.0f ,  0.0f , 1.0f));
+		SHColor[4]   = ShadeSH9(float4( 0.0f ,  0.0f , -1.0f , 1.0f));
+		SHColor[5]   = ShadeSH9(float4( 0.0f ,  0.0f ,  1.0f , 1.0f));
 
 		float SHLength[6];
-		SHLength[0] = length(SHColor[0]);
-		SHLength[1] = length(SHColor[1]);
-		SHLength[2] = length(SHColor[2]);
-		SHLength[3] = length(SHColor[3]) + 0.000001f;
-		SHLength[4] = length(SHColor[4]);
-		SHLength[5] = length(SHColor[5]);
+		SHLength[0]  = MonoColor(SHColor[0]);
+		SHLength[1]  = MonoColor(SHColor[1]);
+		SHLength[2]  = MonoColor(SHColor[2]);
+		SHLength[3]  = MonoColor(SHColor[3]) + 0.000001f;
+		SHLength[4]  = MonoColor(SHColor[4]);
+		SHLength[5]  = MonoColor(SHColor[5]);
 
-		o.shdir   = SHLightDirection(SHLength);
-		o.shmax   = SHLightMax(SHColor) * _SHLight;
-		o.shmin   = SHLightMin(SHColor) * _SHLight;
+		o.shdir      = SHLightDirection(SHLength);
+		o.shmax      = SHLightMax(SHColor) * _SHLight;
+		o.shmin      = SHLightMin(SHColor) * _SHLight;
 
 		if (_MonochromeLit) {
-			o.shmax = MonoColor(o.shmax);
-			o.shmin = MonoColor(o.shmin);
+			o.shmax  = MonoColor(o.shmax);
+			o.shmin  = MonoColor(o.shmin);
 		}
 	#endif
 
 //-------------------------------------Vertexライト
 	#ifdef PASS_FB
-		#if UNITY_SHOULD_SAMPLE_SH && VERTEXLIGHT_ON
+		#if defined(UNITY_SHOULD_SAMPLE_SH) && defined(VERTEXLIGHT_ON)
 
 			o.vldirX  = unity_4LightPosX0 - PosW.x;
 			o.vldirY  = unity_4LightPosY0 - PosW.y;
@@ -76,11 +76,11 @@ VOUT vert (VIN v) {
 
 		#else
 
-			o.vldirX = (float4)0.0f;
-			o.vldirY = (float4)0.0f;
-			o.vldirZ = (float4)0.0f;
-			o.vlcorr = (float4)0.0f;
-			o.vlatn  = (float4)0.0f;
+			o.vldirX  = (float4)0.0f;
+			o.vldirY  = (float4)0.0f;
+			o.vldirZ  = (float4)0.0f;
+			o.vlcorr  = (float4)0.0f;
+			o.vlatn   = (float4)0.0f;
 
 		#endif
 	#endif
@@ -109,7 +109,7 @@ VOUT vert (VIN v) {
 
 //-------------------------------------接ベクトル
 	o.tanW    = UnityObjectToWorldDir(v.tangent.xyz);
-	o.tanB    = cross(o.normal , o.tanW) * v.tangent.w * unity_WorldTransformParams.w;
+	o.tanB    = cross(UnityObjectToWorldNormal(v.normal) , o.tanW) * v.tangent.w * unity_WorldTransformParams.w;
 
 //-------------------------------------MatCap
 	float3 MatCam = normalize(UNITY_MATRIX_V[1].xyz);

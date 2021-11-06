@@ -9,12 +9,17 @@ namespace SunaoShader {
 
 		MaterialProperty MainTex;
 		MaterialProperty Color;
-		MaterialProperty Bright;
 		MaterialProperty Alpha;
 		MaterialProperty Cutout;
-		MaterialProperty VertexColor;
 		MaterialProperty BumpMap;
+		MaterialProperty OcclusionMap;
+		MaterialProperty AlphaMask;
+		MaterialProperty Bright;
 		MaterialProperty BumpScale;
+		MaterialProperty OcclusionStrength;
+		MaterialProperty OcclusionMode;
+		MaterialProperty AlphaMaskStrength;
+		MaterialProperty VertexColor;
 
 		MaterialProperty ShadeMask;
 		MaterialProperty Shade;
@@ -49,6 +54,7 @@ namespace SunaoShader {
 		MaterialProperty EmissionWaveform;
 		MaterialProperty EmissionScrX;
 		MaterialProperty EmissionScrY;
+		MaterialProperty IgnoreTexAlphaE;
 		MaterialProperty EmissionInTheDark;
 
 		MaterialProperty ReflectionEnable;
@@ -74,6 +80,7 @@ namespace SunaoShader {
 		MaterialProperty RimLitLighthing;
 		MaterialProperty RimLitTexColor;
 		MaterialProperty RimLitMode;
+		MaterialProperty IgnoreTexAlphaRL;
 
 		MaterialProperty Culling;
 		MaterialProperty DirectionalLight;
@@ -90,6 +97,7 @@ namespace SunaoShader {
 		MaterialProperty LimitterEnable;
 		MaterialProperty LimitterMax;
 
+		MaterialProperty MainFO;
 		MaterialProperty ShadingFO;
 		MaterialProperty OutlineFO;
 		MaterialProperty EmissionFO;
@@ -98,13 +106,15 @@ namespace SunaoShader {
 		MaterialProperty OtherSettingsFO;
 
 
-		bool ShadingFoldout    = false;
-		bool OutlineFoldout    = false;
-		bool EmissionFoldout   = false;
-		bool ReflectionFoldout = false;
-		bool RimLightFoldout   = false;
-		bool OtherFoldout      = false;
+		bool    MainFoldout       = false;
+		bool    ShadingFoldout    = false;
+		bool    OutlineFoldout    = false;
+		bool    EmissionFoldout   = false;
+		bool    ReflectionFoldout = false;
+		bool    RimLightFoldout   = false;
+		bool    OtherFoldout      = false;
 
+		string  Version           = "1.1.0";
 
 
 		public override void OnGUI(MaterialEditor ME , MaterialProperty[] Prop) {
@@ -117,11 +127,16 @@ namespace SunaoShader {
 			MainTex           = FindProperty("_MainTex"           , Prop , false);
 			Color             = FindProperty("_Color"             , Prop , false);
 			Alpha             = FindProperty("_Alpha"             , Prop , false);
-			Bright            = FindProperty("_Bright"            , Prop , false);
 			Cutout            = FindProperty("_Cutout"            , Prop , false);
-			VertexColor       = FindProperty("_VertexColor"       , Prop , false);
 			BumpMap           = FindProperty("_BumpMap"           , Prop , false);
+			OcclusionMap      = FindProperty("_OcclusionMap"      , Prop , false);
+			AlphaMask         = FindProperty("_AlphaMask"         , Prop , false);
+			Bright            = FindProperty("_Bright"            , Prop , false);
 			BumpScale         = FindProperty("_BumpScale"         , Prop , false);
+			OcclusionStrength = FindProperty("_OcclusionStrength" , Prop , false);
+			OcclusionMode     = FindProperty("_OcclusionMode"     , Prop , false);
+			AlphaMaskStrength = FindProperty("_AlphaMaskStrength" , Prop , false);
+			VertexColor       = FindProperty("_VertexColor"       , Prop , false);
 
 			ShadeMask         = FindProperty("_ShadeMask"         , Prop , false);
 			Shade             = FindProperty("_Shade"             , Prop , false);
@@ -158,6 +173,7 @@ namespace SunaoShader {
 			EmissionWaveform  = FindProperty("_EmissionWaveform"  , Prop , false);
 			EmissionScrX      = FindProperty("_EmissionScrX"      , Prop , false);
 			EmissionScrY      = FindProperty("_EmissionScrY"      , Prop , false);
+			IgnoreTexAlphaE   = FindProperty("_IgnoreTexAlphaE"   , Prop , false);
 			EmissionInTheDark = FindProperty("_EmissionInTheDark" , Prop , false);
 
 			ReflectionEnable  = FindProperty("_ReflectionEnable"  , Prop , false);
@@ -183,6 +199,7 @@ namespace SunaoShader {
 			RimLitLighthing   = FindProperty("_RimLitLighthing"   , Prop , false);
 			RimLitTexColor    = FindProperty("_RimLitTexColor"    , Prop , false);
 			RimLitMode        = FindProperty("_RimLitMode"        , Prop , false);
+			IgnoreTexAlphaRL  = FindProperty("_IgnoreTexAlphaRL"  , Prop , false);
 
 			Culling           = FindProperty("_Culling"           , Prop , false);
 			DirectionalLight  = FindProperty("_DirectionalLight"  , Prop , false);
@@ -199,6 +216,7 @@ namespace SunaoShader {
 			LimitterEnable    = FindProperty("_LimitterEnable"    , Prop , false);
 			LimitterMax       = FindProperty("_LimitterMax"       , Prop , false);
 
+			MainFO            = FindProperty("_MainFO"            , Prop , false);
 			ShadingFO         = FindProperty("_ShadingFO"         , Prop , false);
 			OutlineFO         = FindProperty("_OutlineFO"         , Prop , false);
 			EmissionFO        = FindProperty("_EmissionFO"        , Prop , false);
@@ -219,21 +237,49 @@ namespace SunaoShader {
 					ME.TexturePropertySingleLine (new GUIContent("Main Texture") , MainTex , Color);
 					ME.TextureScaleOffsetProperty(MainTex);
 
-					ME.ShaderProperty(Bright , new GUIContent("Brightness"));
-
 					if (Shader_Cutout     ) ME.ShaderProperty(Cutout , new GUIContent("Cutout"));
 					if (Shader_Transparent) ME.ShaderProperty(Alpha  , new GUIContent("Alpha" ));
 
-					ME.ShaderProperty(VertexColor , new GUIContent("Use Vertex Color"));
+					
 				}
 
 				using (new EditorGUILayout.VerticalScope("box")) {
 
-					GUILayout.Label("Normal Map", EditorStyles.boldLabel);
+					GUILayout.Label("Texture Maps", EditorStyles.boldLabel);
 
-					ME.TexturePropertySingleLine(new GUIContent("Normal Map") , BumpMap , BumpScale);
-
+					ME.TexturePropertySingleLine(new GUIContent("Normal Map") , BumpMap     );
+					ME.TexturePropertySingleLine(new GUIContent("Occlusion" ) , OcclusionMap);
+					if (Shader_Cutout || Shader_Transparent) ME.TexturePropertySingleLine(new GUIContent("Alpha Mask") , AlphaMask);
 				}
+
+				EditorGUI.indentLevel ++;
+
+				if (mat.GetInt("_MainFO") == 1) MainFoldout = true;
+				MainFoldout = EditorGUILayout.Foldout(MainFoldout , "Advanced Settings" , EditorStyles.boldFont);
+
+				if (MainFoldout) {
+					mat.SetInt("_MainFO" , 1);
+
+					ME.ShaderProperty(Bright , new GUIContent("Brightness"));
+
+					if (BumpMap.textureValue      != null) {
+						ME.ShaderProperty(BumpScale         , new GUIContent("Normal Map Scale"  ));
+					}
+					if (OcclusionMap.textureValue != null) {
+						ME.ShaderProperty(OcclusionStrength , new GUIContent("Occlusion Strength"));
+						ME.ShaderProperty(OcclusionMode     , new GUIContent("Occlusion Mode"    ));
+					}
+					if ((AlphaMask.textureValue   != null) && (Shader_Cutout || Shader_Transparent)) {
+						ME.ShaderProperty(AlphaMaskStrength , new GUIContent("Alpha Mask Strength"));
+					}
+
+					ME.ShaderProperty(VertexColor , new GUIContent("Use Vertex Color"  ));
+				} else {
+					mat.SetInt("_MainFO" , 0);
+				}
+
+				EditorGUI.indentLevel --;
+
 			}
 
 
@@ -367,7 +413,11 @@ namespace SunaoShader {
 
 						ME.ShaderProperty(EmissionScrX      , new GUIContent("Scroll X"        ));
 						ME.ShaderProperty(EmissionScrY      , new GUIContent("Scroll Y"        ));
-						
+
+						if (Shader_Transparent) {
+							ME.ShaderProperty(IgnoreTexAlphaE , new GUIContent("Ignore Main Texture Alpha"));
+						}
+
 						ME.ShaderProperty(EmissionInTheDark , new GUIContent("Only in the Dark"));
 					} else {
 						mat.SetInt("_EmissionFO" , 0);
@@ -423,6 +473,7 @@ namespace SunaoShader {
 						ME.ShaderProperty(SpecularSH       , new GUIContent("SH Light Specular"            ));
 						ME.ShaderProperty(ReflectLit       , new GUIContent("Use Light Color for Metallic" ));
 						ME.ShaderProperty(MatCapLit        , new GUIContent("Use Light Color for MatCap"   ));
+
 						if (Shader_Transparent) {
 							ME.ShaderProperty(IgnoreTexAlphaR  , new GUIContent("Ignore Main Texture Alpha"));
 						}
@@ -461,6 +512,11 @@ namespace SunaoShader {
 						ME.ShaderProperty(RimLitLighthing , new GUIContent("Use Light Color"   ));
 						ME.ShaderProperty(RimLitTexColor  , new GUIContent("Use Main Texture"  ));
 						ME.ShaderProperty(RimLitMode      , new GUIContent("Rim Light Mode"    ));
+
+						if (Shader_Transparent) {
+							ME.ShaderProperty(IgnoreTexAlphaRL , new GUIContent("Ignore Main Texture Alpha"));
+						}
+
 					} else {
 						mat.SetInt("_RimLightingFO" , 0);
 					}
@@ -556,6 +612,11 @@ namespace SunaoShader {
 				}
 			}
 
+			EditorGUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			GUILayout.Label("Sunao Shader " + Version , EditorStyles.boldLabel);
+			EditorGUILayout.EndHorizontal();
+
 		}
 	}
 
@@ -567,6 +628,7 @@ namespace SunaoShader {
 			if (Prop.floatValue >= 0.5f) IN = true;
 
 			var  OUT = EditorGUI.Toggle(Pos, Label, IN);
+			
 
 			if (OUT) {
 				Prop.floatValue = 1.0f;
