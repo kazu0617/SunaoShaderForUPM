@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //              Sunao Shader GUI
-//                      Copyright (c) 2020 揚茄子研究所
+//                      Copyright (c) 2021 揚茄子研究所
 //
 // This software is released under the MIT License.
 // see LICENSE or http://sunao.orz.hm/agenasulab/ss/LICENSE
@@ -119,11 +119,18 @@ namespace SunaoShader {
 
 		MaterialProperty ReflectionEnable;
 		MaterialProperty MetallicGlossMap;
-		MaterialProperty MatCap;
+		MaterialProperty GlossColor;
 		MaterialProperty Specular;
 		MaterialProperty Metallic;
-		MaterialProperty MatCapStrength;
 		MaterialProperty GlossMapScale;
+		MaterialProperty MatCap;
+		MaterialProperty MatCapColor;
+		MaterialProperty MatCapMaskEnable;
+		MaterialProperty MatCapMask;
+		MaterialProperty MatCapStrength;
+		MaterialProperty ToonGlossEnable;
+		MaterialProperty ToonGloss;
+		MaterialProperty ToonGlossShift;
 		MaterialProperty SpecularTexColor;
 		MaterialProperty MetallicTexColor;
 		MaterialProperty MatCapTexColor;
@@ -175,7 +182,7 @@ namespace SunaoShader {
 
 		int     Version_H         = 1;
 		int     Version_M         = 4;
-		int     Version_L         = 0;
+		int     Version_L         = 1;
 
 		int     VersionC          = 0;
 		int     VersionM          = 0;
@@ -331,11 +338,17 @@ namespace SunaoShader {
 
 			ReflectionEnable  = FindProperty("_ReflectionEnable"  , Prop , false);
 			MetallicGlossMap  = FindProperty("_MetallicGlossMap"  , Prop , false);
-			MatCap            = FindProperty("_MatCap"            , Prop , false);
+			GlossColor        = FindProperty("_GlossColor"        , Prop , false);
 			Specular          = FindProperty("_Specular"          , Prop , false);
 			Metallic          = FindProperty("_Metallic"          , Prop , false);
-			MatCapStrength    = FindProperty("_MatCapStrength"    , Prop , false);
 			GlossMapScale     = FindProperty("_GlossMapScale"     , Prop , false);
+			MatCap            = FindProperty("_MatCap"            , Prop , false);
+			MatCapColor       = FindProperty("_MatCapColor"       , Prop , false);
+			MatCapMaskEnable  = FindProperty("_MatCapMaskEnable"  , Prop , false);
+			MatCapMask        = FindProperty("_MatCapMask"        , Prop , false);
+			MatCapStrength    = FindProperty("_MatCapStrength"    , Prop , false);
+			ToonGlossEnable   = FindProperty("_ToonGlossEnable"   , Prop , false);
+			ToonGloss         = FindProperty("_ToonGloss"         , Prop , false);
 			SpecularTexColor  = FindProperty("_SpecularTexColor"  , Prop , false);
 			MetallicTexColor  = FindProperty("_MetallicTexColor"  , Prop , false);
 			MatCapTexColor    = FindProperty("_MatCapTexColor"    , Prop , false);
@@ -442,6 +455,10 @@ namespace SunaoShader {
 
 
 					ME.TexturePropertySingleLine(new GUIContent("Normal Map") , BumpMap     );
+					if (BumpMap.textureValue != null) {
+						ME.TextureScaleOffsetProperty(BumpMap);
+					}
+
 					ME.TexturePropertySingleLine(new GUIContent("Occlusion" ) , OcclusionMap);
 					if (Shader_Cutout || Shader_Transparent || Shader_Stencil) ME.TexturePropertySingleLine(new GUIContent("Alpha Mask") , AlphaMask);
 
@@ -718,7 +735,7 @@ namespace SunaoShader {
 
 				if (ParallaxEnable.floatValue >= 0.5f) {
 
-					ME.TexturePropertySingleLine(new GUIContent("Parallax Emission Mask") , ParallaxMap);
+					ME.TexturePropertySingleLine(new GUIContent("Parallax Emission Texture") , ParallaxMap);
 					if (ParallaxMap.textureValue != null) {
 						ME.TextureScaleOffsetProperty(ParallaxMap);
 					}
@@ -789,7 +806,7 @@ namespace SunaoShader {
 				ME.ShaderProperty(ReflectionEnable , new GUIContent("Enable Reflection"));
 
 				if (ReflectionEnable.floatValue >= 0.5f) {
-					ME.TexturePropertySingleLine(new GUIContent("Reflection Mask") , MetallicGlossMap);
+					ME.TexturePropertySingleLine(new GUIContent("Reflection Mask") , MetallicGlossMap , GlossColor);
 
 					using (new EditorGUILayout.VerticalScope("box")) {
 
@@ -805,9 +822,23 @@ namespace SunaoShader {
 
 						GUILayout.Label("Material Capture", EditorStyles.boldLabel);
 
-						ME.TexturePropertySingleLine(new GUIContent("Material Capture") , MatCap);
+						ME.TexturePropertySingleLine(new GUIContent("MatCap Texture") , MatCap , MatCapColor);
 						if (MatCap.textureValue != null) {
+							ME.ShaderProperty(MatCapMaskEnable , new GUIContent("Use Reflection Mask"));
+							if (MatCapMaskEnable.floatValue < 0.5f) ME.TexturePropertySingleLine(new GUIContent("MatCap Mask") , MatCapMask);
+
 							ME.ShaderProperty(MatCapStrength , new GUIContent("MatCap Strength"));
+						}
+
+					}
+
+					using (new EditorGUILayout.VerticalScope("box")) {
+
+						GUILayout.Label("Toon Specular", EditorStyles.boldLabel);
+
+						ME.ShaderProperty(ToonGlossEnable , new GUIContent("Enable Toon Specular"));
+						if (ToonGlossEnable.floatValue >= 0.5f) {
+							ME.ShaderProperty(ToonGloss      , new GUIContent("Toon Specular"));
 						}
 
 					}

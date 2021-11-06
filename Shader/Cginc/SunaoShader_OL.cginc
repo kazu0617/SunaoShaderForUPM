@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //              Sunao Shader Outline
-//                      Copyright (c) 2020 揚茄子研究所
+//                      Copyright (c) 2021 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -223,7 +223,7 @@ float4 frag (VOUT IN) : COLOR {
 		OUT.a = 1.0f;
 	#endif
 
-	clip(IN.mask - 0.2f);
+	clip(IN.mask - 0.1f);
 
 //----ガンマ修正
 	if (_EnableGammaFix) {
