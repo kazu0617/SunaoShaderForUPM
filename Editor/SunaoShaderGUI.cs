@@ -44,6 +44,7 @@ namespace SunaoShader {
 		MaterialProperty DecalSizeY;
 		MaterialProperty DecalRotation;
 		MaterialProperty DecalMode;
+		MaterialProperty DecalMirror;
 		MaterialProperty DecalScrollX;
 		MaterialProperty DecalScrollY;
 		MaterialProperty DecalAnimation;
@@ -169,7 +170,7 @@ namespace SunaoShader {
 
 		int     Version_H         = 1;
 		int     Version_M         = 3;
-		int     Version_L         = 0;
+		int     Version_L         = 1;
 
 		int     VersionC          = 0;
 		int     VersionM          = 0;
@@ -211,6 +212,7 @@ namespace SunaoShader {
 			DecalSizeY        = FindProperty("_DecalSizeY"        , Prop , false);
 			DecalRotation     = FindProperty("_DecalRotation"     , Prop , false);
 			DecalMode         = FindProperty("_DecalMode"         , Prop , false);
+			DecalMirror       = FindProperty("_DecalMirror"       , Prop , false);
 			DecalScrollX      = FindProperty("_DecalScrollX"      , Prop , false);
 			DecalScrollY      = FindProperty("_DecalScrollY"      , Prop , false);
 			DecalAnimation    = FindProperty("_DecalAnimation"    , Prop , false);
@@ -445,15 +447,16 @@ namespace SunaoShader {
 						if (DecalFoldout) {
 							mat.SetInt("_DecalFO" , 1);
 
-							ME.ShaderProperty(DecalMode        , new GUIContent("Decal Mode"      ));
+							ME.ShaderProperty(DecalMode        , new GUIContent("Decal Mode"       ));
+							ME.ShaderProperty(DecalMirror      , new GUIContent("Decal Mirror Mode"));
 
-							ME.ShaderProperty(DecalScrollX     , new GUIContent("Scroll X"        ));
-							ME.ShaderProperty(DecalScrollY     , new GUIContent("Scroll Y"        ));
+							ME.ShaderProperty(DecalScrollX     , new GUIContent("Scroll X"         ));
+							ME.ShaderProperty(DecalScrollY     , new GUIContent("Scroll Y"         ));
 
-							ME.ShaderProperty(DecalAnimation   , new GUIContent("Animation Speed" ));
+							ME.ShaderProperty(DecalAnimation   , new GUIContent("Animation Speed"  ));
 							if (DecalAnimation.floatValue > 0.0f) {
-								ME.ShaderProperty(DecalAnimX   , new GUIContent("Animation X Size"));
-								ME.ShaderProperty(DecalAnimY   , new GUIContent("Animation Y Size"));
+								ME.ShaderProperty(DecalAnimX   , new GUIContent("Animation X Size" ));
+								ME.ShaderProperty(DecalAnimY   , new GUIContent("Animation Y Size" ));
 							}
 							if (DecalAnimX.floatValue < 1.0f) mat.SetInt("_DecalAnimX" , 1);
 							if (DecalAnimY.floatValue < 1.0f) mat.SetInt("_DecalAnimY" , 1);

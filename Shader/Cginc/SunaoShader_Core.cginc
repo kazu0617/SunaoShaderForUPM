@@ -44,6 +44,7 @@
 	uniform float     _DecalSizeY;
 	uniform float     _DecalRotation;
 	uniform uint      _DecalMode;
+	uniform uint      _DecalMirror;
 	uniform float     _DecalScrollX;
 	uniform float     _DecalScrollY;
 	uniform float     _DecalAnimation;
@@ -180,6 +181,7 @@ struct VOUT {
 	float4 decanm  : TEXCOORD4;
 	float3 normal  : NORMAL;
 	float3 color   : COLOR0;
+	float4 tangent : TANGENT;
 	float3 ldir    : LIGHTDIR0;
 	float3 view    : TEXCOORD5;
 	float4 toon    : TEXCOORD6;

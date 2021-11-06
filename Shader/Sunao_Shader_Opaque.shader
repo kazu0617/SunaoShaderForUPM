@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.3.0
+//              Sunao Shader    Ver 1.3.1
 //
 //                      Copyright (c) 2020 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -53,8 +53,11 @@ Shader "Sunao Shader/Opaque" {
 		_DecalSizeX        ("Size X"                    , Range( 0.0, 1.0)) = 0.5
 		_DecalSizeY        ("Size Y"                    , Range( 0.0, 1.0)) = 0.5
 		_DecalRotation     ("Rotation"                  , Range(-180.0, 180.0)) = 0.0
+
 		[Enum(Override , 0 ,Add , 1 , Multiply , 2 , Multiply(Mono) , 3)]
 		_DecalMode         ("Decal Mode"                , int) = 0
+		[Enum(Normal , 0 ,Fixed , 1 , Mirror1 , 2 , Mirror2 , 3)]
+		_DecalMirror       ("Decal Mirror Mode"         , int) = 0
 
 		_DecalScrollX      ("Scroll X"                  , Range(-10.0, 10.0)) = 0.0
 		_DecalScrollY      ("Scroll Y"                  , Range(-10.0, 10.0)) = 0.0

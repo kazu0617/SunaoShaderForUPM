@@ -198,7 +198,8 @@ VOUT vert (VIN v) {
 		o.peprm.x  = EmissionWave(_ParallaxWaveform , _ParallaxBlink , _ParallaxFrequency , _ParallaxPhaseOfs);
 	}
 
-//-------------------------------------接ベクトル
+//-------------------------------------タンジェント
+	o.tangent = v.tangent;
 	o.tanW    = UnityObjectToWorldDir(v.tangent.xyz);
 	o.tanB    = cross(UnityObjectToWorldNormal(v.normal) , o.tanW) * v.tangent.w * unity_WorldTransformParams.w;
 

@@ -1,7 +1,7 @@
 {
   "name": "net.kazu0617.ooo.suna.agenasulab.sunaoshader",
   "displayName": "Sunao Shader for Git",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "unity": "2019.4",
   "description": "Sunao Shaderは、VRChatでの使用を想定して作られたUnity用シェーダーです。\nVRChatにおける多種多様なライティング環境に極力対応するよう設計されていますので、\nワールドの雰囲気にマッチした自然な表現を行うことができます。 \n\nSunao Shaderは以下の機能を持っています。\n\n- カスタマイズできる陰影\n- トゥーンシェーディング\n- ライティングの調整\n- アウトライン\n- 時間変化可能なエミッション\n- 視差エミッション\n- 詳細設定が可能なリフレクション(スペキュラ反射 / 環境マッピング / MatCap)\n- リムライティング\n- ノーマルマップ\n- 各種テクスチャマスク\n- 両面描画\n- ShadowCaster(他のオブジェクトに影を落とす機能)\n- 頂点カラー\n- VRChatのセーフティ発動時にテクスチャや一部パラメータを維持\n- 頂点ライト(重要でないライト)を含めた全ライティングに対応\n- リアルタイムライトが無い場合でもライト方向を疑似的に計算\n  etc ...\n\n\nまた、シェーダーキーワードを一切使用していませんので、VRChat上で何体もの\nアバターが表示されても描画がおかしくなることがありません。\n\n\n解説書は http://sunao.orz.hm/agenasulab/ss/ にあります。\n\n\n本シェーダーはMIT Licenseにて公開されています。\n改変、再配布、アセットやモデルデータへの同梱（有償、無償問わず）等は\nMIT Licenseの範囲内で自由に行うことができます。\n\n詳しくは同梱のLICENSE及び http://sunao.orz.hm/agenasulab/ss/LICENSE を参照して\nください。\n(日本語訳: https://ja.osdn.net/projects/opensource/wiki/licenses%2FMIT_license )\nこのパッケージは、MIT License のもと公開されているSunaoShaderをUPMで使用できるよう、kazu0617がGitHubに上げなおしたものになります。\nUPMを活用して使用する場合は、 https://docs.unity3d.com/ja/current/Manual/upm-ui-giturl.html を参考にしつつgiturlを指定してください。",
     "samples": [
