@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //              Sunao Shader Core
-//                      Copyright (c) 2019 揚茄子研究所
+//                      Copyright (c) 2020 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -38,6 +38,7 @@
 	uniform float4    _CustomShadeColor;
 	uniform bool      _ToonEnable;
 	uniform uint      _Toon;
+	uniform float     _ToonSharpness;
 	uniform sampler2D _LightMask;
 	uniform float     _LightBoost;
 	uniform float     _Unlit;
@@ -57,8 +58,31 @@
 	uniform uint      _EmissionWaveform;
 	uniform float     _EmissionScrX;
 	uniform float     _EmissionScrY;
+	uniform bool      _EmissionLighting;
 	uniform bool      _IgnoreTexAlphaE;
 	uniform float     _EmissionInTheDark;
+
+//----Parallax Emission
+	uniform bool      _ParallaxEnable;
+	uniform sampler2D _ParallaxMap;
+	uniform float4    _ParallaxMap_ST;
+	uniform float4    _ParallaxColor;
+	uniform float     _ParallaxEmission;
+	uniform float     _ParallaxDepth;
+	uniform sampler2D _ParallaxDepthMap;
+	uniform float4    _ParallaxDepthMap_ST;
+	uniform sampler2D _ParallaxMap2;
+	uniform float4    _ParallaxMap2_ST;
+	uniform uint      _ParallaxMode;
+	uniform float     _ParallaxBlink;
+	uniform float     _ParallaxFrequency;
+	uniform uint      _ParallaxWaveform;
+	uniform float     _ParallaxPhaseOfs;
+	uniform float     _ParallaxScrX;
+	uniform float     _ParallaxScrY;
+	uniform bool      _ParallaxLighting;
+	uniform bool      _IgnoreTexAlphaPE;
+	uniform float     _ParallaxInTheDark;
 
 //----Reflection
 	uniform bool      _ReflectionEnable;
@@ -127,11 +151,17 @@ struct VOUT {
 	float3 color   : COLOR0;
 	float3 ldir    : LIGHTDIR0;
 	float3 view    : TEXCOORD1;
-	float2 toon    : TEXCOORD2;
+	float4 toon    : TEXCOORD2;
 	float3 tanW    : TEXCOORD3;
 	float3 tanB    : TEXCOORD4;
 	float3 matcapv : TEXCOORD5;
 	float3 matcaph : TEXCOORD6;
+	float2 euv     : TEXCOORD7;
+	float3 eprm    : TEXCOORD8;
+	float2 peuv    : TEXCOORD9;
+	float2 pduv    : TEXCOORD10;
+	float3 peprm   : TEXCOORD11;
+	float3 pview   : TEXCOORD12;
 
 	#ifdef PASS_FB
 		float3 shdir   : LIGHTDIR1;
@@ -140,16 +170,13 @@ struct VOUT {
 		float4 vldirX  : LIGHTDIR2;
 		float4 vldirY  : LIGHTDIR3;
 		float4 vldirZ  : LIGHTDIR4;
-		float4 vlcorr  : TEXCOORD7;
-		float4 vlatn   : TEXCOORD8;
-		float4 euv     : TEXCOORD9;
-		float3 eprm    : TEXCOORD10;
-		UNITY_FOG_COORDS(21)
+		float4 vlcorr  : TEXCOORD13;
+		float4 vlatn   : TEXCOORD14;
 	#endif
 
+	UNITY_FOG_COORDS(15)
 	#ifdef PASS_FA
-		LIGHTING_COORDS(11 , 12)
-		UNITY_FOG_COORDS(13)
+		LIGHTING_COORDS(16 , 17)
 	#endif
 
 };

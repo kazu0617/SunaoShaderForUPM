@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
-//              Sunao Shader Func
-//                      Copyright (c) 2019 揚茄子研究所
+//              Sunao Shader Function
+//                      Copyright (c) 2020 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -32,7 +32,7 @@ float  MonoColor(float3 col) {
 	return (0.2126f * col.r) + (0.7152f * col.g) + (0.0722f * col.b); //BT.709
 }
 
-//-------------------------------------頂点ライトの長さを計算
+//-------------------------------------頂点ライトの距離を計算
 float4 VLightLength(float4 x , float4 y , float4 z) {
 	return max((x * x) + (y * y) + (z * z) , 0.000001f);
 }
@@ -47,10 +47,12 @@ float4 VLightAtten(float4 len) {
 }
 
 //-------------------------------------トゥーンパラメータの計算
-float2 Toon(float4 toon) {
-	float2 otoon;
-	otoon.x  = toon + 0.5f;
-	otoon.y  = 1.0f / (toon - 1.0f);
+float4 Toon(uint toon , float gradient) {
+	float4 otoon;
+	otoon.x  = max(float(11 - toon) , 2.0f);
+	otoon.y  = 1.0f / (otoon.x - 1.0f);
+	otoon.z  = 0.5f /  otoon.x;
+	otoon.w  = pow(1.0f + (gradient * gradient * gradient) , 10.0f);
 
 	return otoon;
 }
@@ -61,28 +63,37 @@ float2 MixingTransformTex(float2 uv , float4 st0 , float4 st1) {
 }
 
 //-------------------------------------エミッション時間変化パラメータの計算
-float2 EmissionWave(uint mode , float blink , float freq) {
+float2 EmissionWave(uint mode , float blink , float freq , float offset) {
 	float wave = 0.0f;
 
-	if (mode == 0) wave = ((1.0f - (blink * 0.5f)) + cos(_Time.y * freq * 6.283185f) * blink * 0.5f); // 6.283185 = 2π
-	if (mode == 1) wave = (1.0f - blink) + (frac(_Time.y * freq) * blink);
-	if (mode == 2) wave = (1.0f - blink) + (1.0f - frac(_Time.y * freq) * blink);
-	if (mode == 3) wave = (1.0f - blink) + (step(0.5f , frac(_Time.y * freq)) * blink);
+	if (mode == 0) wave = (1.0f - (blink * 0.5f)) + cos((_Time.y * freq + offset) * 6.283185f) * blink * 0.5f; // 6.283185 = 2π
+	if (mode == 1) wave = (1.0f - blink) + (frac(_Time.y * freq + offset) * blink);
+	if (mode == 2) wave = (1.0f - blink) + (1.0f - frac(_Time.y * freq + offset) * blink);
+	if (mode == 3) wave = (1.0f - blink) + (step(0.5f , frac(_Time.y * freq + offset)) * blink);
 
 	return wave;
 }
 
 //-------------------------------------ディフューズシェーディングの計算
 float  DiffuseCalc(float3 normal , float3 ldir , float gradient , float width) {
-	float diffuse;
-	diffuse = ((dot(normal , ldir) - 0.5f) * (gradient + 0.000001f)) + 1.5f - width;
+	float Diffuse;
+	Diffuse = ((dot(normal , ldir) - 0.5f) * (gradient + 0.000001f)) + 1.5f - width;
 
-	return saturate(diffuse);
+	return saturate(Diffuse);
 }
 
 //-------------------------------------トゥーンシェーディングの計算
-float  ToonCalc(float diffuse , float2 toon) {
-	return saturate(floor(diffuse * toon.x) * toon.y);
+float  ToonCalc(float diffuse , float4 toon) {
+
+	float Diffuse;
+	float Gradient;
+
+	Gradient = frac((max(diffuse , 0.0000001f) + toon.z) * toon.x) - 0.5f;
+	Gradient = saturate(Gradient * toon.w + 0.5f) + 0.5f;
+	Gradient = (frac(Gradient) - 0.5f) * toon.y;
+	Diffuse  = floor(diffuse * toon.x) * toon.y + Gradient;
+
+	return saturate(Diffuse);
 }
 
 //-------------------------------------ライトの計算

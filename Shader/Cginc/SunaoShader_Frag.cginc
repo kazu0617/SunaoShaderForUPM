@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
-//              Sunao Shader Frag
-//                      Copyright (c) 2019 揚茄子研究所
+//              Sunao Shader Fragment
+//                      Copyright (c) 2020 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -116,14 +116,56 @@ float4 frag (VOUT IN) : COLOR {
 	if (_LightLimitter) Lighting = saturate(Lighting);
 
 //-------------------------------------エミッション
-	#ifdef PASS_FB
-		float3 Emission     = (float3)0.0f;
-		if (_EmissionEnable) {
-		       Emission     = _Emission * _EmissionColor.rgb;
-		       Emission    *= tex2D(_EmissionMap  , IN.euv.xy + IN.eprm.yz).rgb * tex2D(_EmissionMap  , IN.euv.xy + IN.eprm.yz).a * IN.eprm.x;
-		       Emission    *= tex2D(_EmissionMap2 , IN.euv.zw             ).rgb * tex2D(_EmissionMap2 , IN.euv.zw             ).a;
-		}
+	float3 Emission     = (float3)0.0f;
+
+	bool   EmissionFlag = _EmissionEnable;
+	#ifdef PASS_FA
+		EmissionFlag = _EmissionEnable && _EmissionLighting;
 	#endif
+
+	if (EmissionFlag) {
+		float2 EmissionUV  = IN.uv + IN.eprm.yz;
+		       EmissionUV  = MixingTransformTex(EmissionUV , _MainTex_ST , _EmissionMap_ST);
+		       Emission    = _Emission * _EmissionColor.rgb;
+		       Emission   *= tex2D(_EmissionMap  , EmissionUV).rgb * tex2D(_EmissionMap  , EmissionUV).a * IN.eprm.x;
+		       Emission   *= tex2D(_EmissionMap2 , IN.euv    ).rgb * tex2D(_EmissionMap2 , IN.euv    ).a;
+
+		if (_EmissionLighting) {
+			#ifdef PASS_FB
+				Emission   *= saturate(MonoColor(LightBase) + MonoColor(IN.shmax) + MonoColor(VLightBase));
+			#endif
+			#ifdef PASS_FA
+				Emission   *= saturate(MonoColor(LightBase));
+			#endif
+		}
+	}
+
+//-------------------------------------視差エミッション
+	float3 Parallax     = (float3)0.0f;
+
+	bool   ParallaxFlag = _ParallaxEnable;
+	#ifdef PASS_FA
+		ParallaxFlag = _ParallaxEnable && _ParallaxLighting;
+	#endif
+
+	if (ParallaxFlag) {
+		float  Height      = (1.0f - MonoColor(tex2D(_ParallaxDepthMap , IN.pduv).rgb)) * _ParallaxDepth;
+		float2 ParallaxUV  = IN.uv + IN.peprm.yz;
+		       ParallaxUV -= normalize(IN.pview).xz * Height;
+		       ParallaxUV  = MixingTransformTex(ParallaxUV , _MainTex_ST , _ParallaxMap_ST);
+		       Parallax    = _ParallaxEmission * _ParallaxColor.rgb;
+		       Parallax   *= tex2D(_ParallaxMap  , ParallaxUV).rgb * tex2D(_ParallaxMap  , ParallaxUV).a * IN.peprm.x;
+		       Parallax   *= tex2D(_ParallaxMap2 , IN.peuv   ).rgb * tex2D(_ParallaxMap2 , IN.peuv   ).a;
+
+		if (_ParallaxLighting) {
+			#ifdef PASS_FB
+				Parallax   *= saturate(MonoColor(LightBase) + MonoColor(IN.shmax) + MonoColor(VLightBase));
+			#endif
+			#ifdef PASS_FA
+				Parallax   *= saturate(MonoColor(LightBase));
+			#endif
+		}
+	}
 
 //-------------------------------------リフレクション
 	float3 SpecularMask = (float3)0.0f;
@@ -153,31 +195,31 @@ float4 frag (VOUT IN) : COLOR {
 		#ifdef PASS_FB
 			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
 
-			if (_ReflectLit == 1) Reflection *= LightBase + VLightBase;
-			if (_ReflectLit == 2) Reflection *= IN.shmax;
-			if (_ReflectLit == 3) Reflection *= LightBase + IN.shmax + VLightBase;
+			if (_ReflectLit == 1) Reflection *= saturate(LightBase + VLightBase);
+			if (_ReflectLit == 2) Reflection *= saturate(IN.shmax);
+			if (_ReflectLit == 3) Reflection *= saturate(LightBase + IN.shmax + VLightBase);
 		#endif
 		#ifdef PASS_FA
 			if ((_ReflectLit == 1) || (_ReflectLit == 3)) {
 			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
-				   Reflection  *= LightBase;
+				   Reflection  *= saturate(LightBase);
 			}
 		#endif
 
 //----マットキャップ
 		#ifdef PASS_FB
-			float2 MatCapUV     = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5 + 0.5;
+			float2 MatCapUV     = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5f + 0.5f;
 			       MatCapture   = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
 
-			if (_MatCapLit == 1) MatCapture *= LightBase + VLightBase;
-			if (_MatCapLit == 2) MatCapture *= IN.shmax;
-			if (_MatCapLit == 3) MatCapture *= LightBase + IN.shmax + VLightBase;
+			if (_MatCapLit == 1) MatCapture *= saturate(LightBase + VLightBase);
+			if (_MatCapLit == 2) MatCapture *= saturate(IN.shmax);
+			if (_MatCapLit == 3) MatCapture *= saturate(LightBase + IN.shmax + VLightBase);
 		#endif
 		#ifdef PASS_FA
 			if ((_MatCapLit  == 1) || (_MatCapLit  == 3)) {
-				float2 MatCapUV    = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5 + 0.5;
+				float2 MatCapUV    = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5f + 0.5f;
 				       MatCapture  = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
-				       MatCapture *= LightBase;
+				       MatCapture *= saturate(LightBase);
 			}
 		#endif
 
@@ -192,7 +234,7 @@ float4 frag (VOUT IN) : COLOR {
 		if (_RimLitEnable) {
 			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
 			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
-			if (_RimLitLighthing) RimLight *= LightBase + IN.shmax + VLightBase;
+			if (_RimLitLighthing) RimLight *= saturate(LightBase + IN.shmax + VLightBase);
 			if (_RimLitTexColor ) RimLight *= Color;
 		}
 	#endif
@@ -200,7 +242,7 @@ float4 frag (VOUT IN) : COLOR {
 		if (_RimLitEnable && _RimLitLighthing) {
 			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
 			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
-			       RimLight *= LightBase;
+			       RimLight *= saturate(LightBase);
 			if (_RimLitTexColor ) RimLight *= Color;
 		}
 	#endif
@@ -218,36 +260,64 @@ float4 frag (VOUT IN) : COLOR {
 	}
 
 //----エミッション混合
-	#ifdef PASS_FB
-		if (_EmissionEnable) {
+	if (EmissionFlag) {
 
-			float EmissionRev   = MonoColor(LightBase) + MonoColor(IN.shmax) + MonoColor(VLightBase);
-			      EmissionRev   = 1.0f - pow(saturate(EmissionRev) , 0.44964029f);
-			      EmissionRev   = saturate((EmissionRev - _EmissionInTheDark + 0.1f) * 10.0f);
-			      Emission     *= EmissionRev;
+		float EmissionRev   = MonoColor(LightBase);
+		#ifdef PASS_FB
+			EmissionRev += MonoColor(IN.shmax) + MonoColor(VLightBase);
+		#endif
 
-			if (_EmissionMode == 0) OUT.rgb += Emission;
-			if (_EmissionMode == 1) {
-				OUT.rgb *= saturate(1.0f - Emission);
-				OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Emission;
-			}
-			if (_EmissionMode == 2) OUT.rgb  = saturate(OUT.rgb - Emission);
+		      EmissionRev   = 1.0f - pow(saturate(EmissionRev) , 0.44964029f);
+		      EmissionRev   = saturate((EmissionRev - _EmissionInTheDark + 0.1f) * 10.0f);
+		      Emission     *= EmissionRev;
+
+		if (_EmissionMode == 0) OUT.rgb += Emission;
+		if (_EmissionMode == 1) {
+			OUT.rgb *= saturate(1.0f - Emission);
+			OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Emission;
 		}
-	#endif
+		if (_EmissionMode == 2) OUT.rgb  = saturate(OUT.rgb - Emission);
+	}
 
+//----視差エミッション混合
+	if (ParallaxFlag) {
+
+		float ParallaxRev   = MonoColor(LightBase);
+		#ifdef PASS_FB
+			ParallaxRev += MonoColor(IN.shmax) + MonoColor(VLightBase);
+		#endif
+
+		      ParallaxRev   = 1.0f - pow(saturate(ParallaxRev) , 0.44964029f);
+		      ParallaxRev   = saturate((ParallaxRev - _ParallaxInTheDark + 0.1f) * 10.0f);
+		      Parallax     *= ParallaxRev;
+
+		if (_ParallaxMode == 0) OUT.rgb += Parallax;
+		if (_ParallaxMode == 1) {
+			OUT.rgb *= saturate(1.0f - Parallax);
+			OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Parallax;
+		}
+		if (_ParallaxMode == 2) OUT.rgb  = saturate(OUT.rgb - Parallax);
+	}
+
+//----オクルージョンマスク
 	if (_OcclusionMode == 2) OUT.rgb *= lerp(1.0f , tex2D(_OcclusionMap  , IN.uv).rgb , _OcclusionStrength);
 
+//----エミッションのテクスチャアルファ無視
 	#ifdef TRANSPARENT
 
-		#ifdef PASS_FB
-//----エミッションのテクスチャアルファ無視
-			if (_IgnoreTexAlphaE) {
-				float EmissionAlpha    = MonoColor(Emission);
-				OUT.a = saturate(OUT.a + EmissionAlpha  );
-			}
-		#endif
+		if (EmissionFlag && _IgnoreTexAlphaE) {
+			float EmissionAlpha    = MonoColor(Emission);
+			OUT.a = saturate(OUT.a + EmissionAlpha  );
+		}
+
+//----視差エミッションのテクスチャアルファ無視
+		if (ParallaxFlag && _IgnoreTexAlphaPE) {
+			float ParallaxAlpha    = MonoColor(Parallax);
+			OUT.a = saturate(OUT.a + ParallaxAlpha  );
+		}
+
 //----リフレクションのテクスチャアルファ無視
-		if (_IgnoreTexAlphaR) {
+		if (_ReflectionEnable && _IgnoreTexAlphaR) {
 			float ReflectionAlpha  = 0.0f;
 			      ReflectionAlpha += MonoColor(Reflection) * _Metallic;
 			      ReflectionAlpha += MonoColor(Specular);
@@ -255,11 +325,13 @@ float4 frag (VOUT IN) : COLOR {
 			      ReflectionAlpha *= SpecularMask;
 			OUT.a = saturate(OUT.a + ReflectionAlpha);
 		}
+
 //----リムライトのテクスチャアルファ無視
-		if (_IgnoreTexAlphaRL) {
+		if (_RimLitEnable && _IgnoreTexAlphaRL) {
 			float RimLightAlpha    = MonoColor(RimLight);
 			OUT.a = saturate(OUT.a + RimLightAlpha  );
 		}
+
 	#endif
 
 //-------------------------------------出力オプション

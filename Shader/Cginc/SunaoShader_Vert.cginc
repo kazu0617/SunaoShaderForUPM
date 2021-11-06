@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
-//              Sunao Shader Vert
-//                      Copyright (c) 2019 揚茄子研究所
+//              Sunao Shader Vertex
+//                      Copyright (c) 2020 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -86,26 +86,32 @@ VOUT vert (VIN v) {
 	#endif
 
 //-------------------------------------Toon
-	o.toon  = Toon(max(float(11 - _Toon) , 0.0f));
+	o.toon    = Toon(_Toon , _ToonSharpness);
 
 //-------------------------------------エミッションUV
-	#ifdef PASS_FB
-		o.euv.xy  = MixingTransformTex(v.uv , _MainTex_ST , _EmissionMap_ST );
-		o.euv.zw  = MixingTransformTex(v.uv , _MainTex_ST , _EmissionMap2_ST);
-	#endif
+	o.euv     = MixingTransformTex(v.uv , _MainTex_ST , _EmissionMap2_ST);
 
-//-------------------------------------エミッション時間変化
-	#ifdef PASS_FB
-		o.eprm = (float3)0.0f;
-		if (_EmissionEnable) {
-			o.eprm.x = EmissionWave(_EmissionWaveform , _EmissionBlink , _EmissionFrequency);
-		}
-	#endif
+//-------------------------------------エミッション時間変化パラメータ
+	o.eprm    = (float3)0.0f;
+	if (_EmissionEnable) {
+		o.eprm.x   = EmissionWave(_EmissionWaveform , _EmissionBlink , _EmissionFrequency , 0);
+		o.eprm.yz  = float2(_EmissionScrX * _Time.y , _EmissionScrY * _Time.y);
+	}
 
-//-------------------------------------エミッションスクロール
-	#ifdef PASS_FB
-		o.eprm.yz = float2(_EmissionScrX * _Time.y , _EmissionScrY * _Time.y);
-	#endif
+//-------------------------------------視差エミッション
+	TANGENT_SPACE_ROTATION;
+	o.pview   = mul(rotation, ObjSpaceViewDir(v.vertex)).xzy;
+
+//-------------------------------------視差エミッションUV
+	o.peuv    = MixingTransformTex(v.uv , _MainTex_ST , _ParallaxMap2_ST    );
+	o.pduv    = MixingTransformTex(v.uv , _MainTex_ST , _ParallaxDepthMap_ST);
+
+//-------------------------------------視差エミッション時間変化パラメータ
+	o.peprm   = (float3)0.0f;
+	if (_ParallaxEnable) {
+		o.peprm.x  = EmissionWave(_ParallaxWaveform , _ParallaxBlink , _ParallaxFrequency , _ParallaxPhaseOfs);
+		o.peprm.yz = float2(_ParallaxScrX * _Time.y , _ParallaxScrY * _Time.y);
+	}
 
 //-------------------------------------接ベクトル
 	o.tanW    = UnityObjectToWorldDir(v.tangent.xyz);

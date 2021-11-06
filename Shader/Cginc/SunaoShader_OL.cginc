@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //              Sunao Shader Outline
-//                      Copyright (c) 2019 揚茄子研究所
+//                      Copyright (c) 2020 揚茄子研究所
 //--------------------------------------------------------------
 
 
@@ -156,7 +156,7 @@ VOUT vert (VIN v) {
 		if (_LightLimitter) Lighting = saturate(Lighting);
 		if (_MonochromeLit) Lighting = MonoColor(Lighting);
 
-		o.color *=  saturate(Lighting);
+		o.color *=  Lighting;
 	}
 
 //----ポイントライト
@@ -178,6 +178,11 @@ float4 frag (VOUT IN) : COLOR {
 	float4 OUT          = float4(0.0f , 0.0f , 0.0f , 1.0f);
 
 	OUT.rgb = tex2D(_OutLineTexture , IN.uv) * IN.color;
+
+	#ifdef PASS_OL_FA
+		if (_OutLineLighthing) OUT.rgb *= LIGHT_ATTENUATION(IN);
+	#endif
+
 	if (_OutLineTexColor) {
 	       OUT.rgb     *= tex2D(_MainTex , IN.uv);
 	}
@@ -195,11 +200,6 @@ float4 frag (VOUT IN) : COLOR {
 	#endif
 
 	clip(IN.mask - 0.2f);
-
-//----ポイントライト減衰
-	#ifdef PASS_OL_FA
-		OUT.rgb  *= LIGHT_ATTENUATION(IN) * 0.9f;
-	#endif
 
 //----ガンマ修正
 	if (_EnableGammaFix) {

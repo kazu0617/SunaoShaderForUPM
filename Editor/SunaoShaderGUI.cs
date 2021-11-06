@@ -1,3 +1,11 @@
+//--------------------------------------------------------------
+//              Sunao Shader GUI
+//                      Copyright (c) 2020 —g‰ÖŽqŒ¤‹†Š
+//
+// This software is released under the MIT License.
+// see LICENSE or http://sunao.orz.hm/agenasulab/ss/LICENSE
+//--------------------------------------------------------------
+
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
@@ -29,6 +37,7 @@ namespace SunaoShader {
 		MaterialProperty CustomShadeColor;
 		MaterialProperty ToonEnable;
 		MaterialProperty Toon;
+		MaterialProperty ToonSharpness;
 		MaterialProperty LightMask;
 		MaterialProperty LightBoost;
 		MaterialProperty Unlit;
@@ -38,7 +47,7 @@ namespace SunaoShader {
 		MaterialProperty OutLineMask;
 		MaterialProperty OutLineColor;
 		MaterialProperty OutLineSize;
-		MaterialProperty OutLineLighthing;
+		MaterialProperty OutLineLighting;
 		MaterialProperty OutLineTexColor;
 		MaterialProperty OutLineTexture;
 		MaterialProperty OutLineFixScale;
@@ -54,8 +63,27 @@ namespace SunaoShader {
 		MaterialProperty EmissionWaveform;
 		MaterialProperty EmissionScrX;
 		MaterialProperty EmissionScrY;
+		MaterialProperty EmissionLighting;
 		MaterialProperty IgnoreTexAlphaE;
 		MaterialProperty EmissionInTheDark;
+
+		MaterialProperty ParallaxEnable;
+		MaterialProperty ParallaxMap;
+		MaterialProperty ParallaxColor;
+		MaterialProperty ParallaxEmission;
+		MaterialProperty ParallaxDepth;
+		MaterialProperty ParallaxDepthMap;
+		MaterialProperty ParallaxMap2;
+		MaterialProperty ParallaxMode;
+		MaterialProperty ParallaxBlink;
+		MaterialProperty ParallaxFrequency;
+		MaterialProperty ParallaxWaveform;
+		MaterialProperty ParallaxPhaseOfs;
+		MaterialProperty ParallaxScrX;
+		MaterialProperty ParallaxScrY;
+		MaterialProperty ParallaxLighting;
+		MaterialProperty IgnoreTexAlphaPE;
+		MaterialProperty ParallaxInTheDark;
 
 		MaterialProperty ReflectionEnable;
 		MaterialProperty MetallicGlossMap;
@@ -77,7 +105,7 @@ namespace SunaoShader {
 		MaterialProperty RimLitColor;
 		MaterialProperty RimLit;
 		MaterialProperty RimLitGradient;
-		MaterialProperty RimLitLighthing;
+		MaterialProperty RimLitLighting;
 		MaterialProperty RimLitTexColor;
 		MaterialProperty RimLitMode;
 		MaterialProperty IgnoreTexAlphaRL;
@@ -97,24 +125,19 @@ namespace SunaoShader {
 		MaterialProperty LimitterEnable;
 		MaterialProperty LimitterMax;
 
-		MaterialProperty MainFO;
-		MaterialProperty ShadingFO;
-		MaterialProperty OutlineFO;
-		MaterialProperty EmissionFO;
-		MaterialProperty ReflectionFO;
-		MaterialProperty RimLightingFO;
-		MaterialProperty OtherSettingsFO;
-
 
 		bool    MainFoldout       = false;
 		bool    ShadingFoldout    = false;
 		bool    OutlineFoldout    = false;
 		bool    EmissionFoldout   = false;
+		bool    ParallaxFoldout   = false;
 		bool    ReflectionFoldout = false;
 		bool    RimLightFoldout   = false;
 		bool    OtherFoldout      = false;
 
-		string  Version           = "1.1.0";
+		int     Version_H         = 1;
+		int     Version_M         = 2;
+		int     Version_L         = 0;
 
 
 		public override void OnGUI(MaterialEditor ME , MaterialProperty[] Prop) {
@@ -147,6 +170,7 @@ namespace SunaoShader {
 
 			ToonEnable        = FindProperty("_ToonEnable"        , Prop , false);
 			Toon              = FindProperty("_Toon"              , Prop , false);
+			ToonSharpness     = FindProperty("_ToonSharpness"     , Prop , false);
 
 			LightMask         = FindProperty("_LightMask"         , Prop , false);
 			LightBoost        = FindProperty("_LightBoost"        , Prop , false);
@@ -157,7 +181,7 @@ namespace SunaoShader {
 			OutLineMask       = FindProperty("_OutLineMask"       , Prop , false);
 			OutLineColor      = FindProperty("_OutLineColor"      , Prop , false);
 			OutLineSize       = FindProperty("_OutLineSize"       , Prop , false);
-			OutLineLighthing  = FindProperty("_OutLineLighthing"  , Prop , false);
+			OutLineLighting   = FindProperty("_OutLineLighthing"  , Prop , false);
 			OutLineTexColor   = FindProperty("_OutLineTexColor"   , Prop , false);
 			OutLineTexture    = FindProperty("_OutLineTexture"    , Prop , false);
 			OutLineFixScale   = FindProperty("_OutLineFixScale"   , Prop , false);
@@ -173,8 +197,27 @@ namespace SunaoShader {
 			EmissionWaveform  = FindProperty("_EmissionWaveform"  , Prop , false);
 			EmissionScrX      = FindProperty("_EmissionScrX"      , Prop , false);
 			EmissionScrY      = FindProperty("_EmissionScrY"      , Prop , false);
+			EmissionLighting  = FindProperty("_EmissionLighting"  , Prop , false);
 			IgnoreTexAlphaE   = FindProperty("_IgnoreTexAlphaE"   , Prop , false);
 			EmissionInTheDark = FindProperty("_EmissionInTheDark" , Prop , false);
+
+			ParallaxEnable    = FindProperty("_ParallaxEnable"    , Prop , false);
+			ParallaxMap       = FindProperty("_ParallaxMap"       , Prop , false);
+			ParallaxColor     = FindProperty("_ParallaxColor"     , Prop , false);
+			ParallaxEmission  = FindProperty("_ParallaxEmission"  , Prop , false);
+			ParallaxDepth     = FindProperty("_ParallaxDepth"     , Prop , false);
+			ParallaxDepthMap  = FindProperty("_ParallaxDepthMap"  , Prop , false);
+			ParallaxMap2      = FindProperty("_ParallaxMap2"      , Prop , false);
+			ParallaxMode      = FindProperty("_ParallaxMode"      , Prop , false);
+			ParallaxBlink     = FindProperty("_ParallaxBlink"     , Prop , false);
+			ParallaxFrequency = FindProperty("_ParallaxFrequency" , Prop , false);
+			ParallaxWaveform  = FindProperty("_ParallaxWaveform"  , Prop , false);
+			ParallaxPhaseOfs  = FindProperty("_ParallaxPhaseOfs"  , Prop , false);
+			ParallaxScrX      = FindProperty("_ParallaxScrX"      , Prop , false);
+			ParallaxScrY      = FindProperty("_ParallaxScrY"      , Prop , false);
+			ParallaxLighting  = FindProperty("_ParallaxLighting"  , Prop , false);
+			IgnoreTexAlphaPE  = FindProperty("_IgnoreTexAlphaPE"  , Prop , false);
+			ParallaxInTheDark = FindProperty("_ParallaxInTheDark" , Prop , false);
 
 			ReflectionEnable  = FindProperty("_ReflectionEnable"  , Prop , false);
 			MetallicGlossMap  = FindProperty("_MetallicGlossMap"  , Prop , false);
@@ -196,7 +239,7 @@ namespace SunaoShader {
 			RimLitColor       = FindProperty("_RimLitColor"       , Prop , false);
 			RimLit            = FindProperty("_RimLit"            , Prop , false);
 			RimLitGradient    = FindProperty("_RimLitGradient"    , Prop , false);
-			RimLitLighthing   = FindProperty("_RimLitLighthing"   , Prop , false);
+			RimLitLighting    = FindProperty("_RimLitLighthing"   , Prop , false);
 			RimLitTexColor    = FindProperty("_RimLitTexColor"    , Prop , false);
 			RimLitMode        = FindProperty("_RimLitMode"        , Prop , false);
 			IgnoreTexAlphaRL  = FindProperty("_IgnoreTexAlphaRL"  , Prop , false);
@@ -215,15 +258,6 @@ namespace SunaoShader {
 			BlightOffset      = FindProperty("_BlightOffset"      , Prop , false);
 			LimitterEnable    = FindProperty("_LimitterEnable"    , Prop , false);
 			LimitterMax       = FindProperty("_LimitterMax"       , Prop , false);
-
-			MainFO            = FindProperty("_MainFO"            , Prop , false);
-			ShadingFO         = FindProperty("_ShadingFO"         , Prop , false);
-			OutlineFO         = FindProperty("_OutlineFO"         , Prop , false);
-			EmissionFO        = FindProperty("_EmissionFO"        , Prop , false);
-			ReflectionFO      = FindProperty("_ReflectionFO"      , Prop , false);
-			RimLightingFO     = FindProperty("_RimLightingFO"     , Prop , false);
-			OtherSettingsFO   = FindProperty("_OtherSettingsFO"   , Prop , false);
-
 
 
 			GUILayout.Label("Main", EditorStyles.boldLabel);
@@ -320,7 +354,8 @@ namespace SunaoShader {
 
 					ME.ShaderProperty(ToonEnable , new GUIContent("Enable Toon Shading"));
 					if (mat.GetInt("_ToonEnable") == 1) {
-						ME.ShaderProperty(Toon , new GUIContent("Toon"));
+						ME.ShaderProperty(Toon           , new GUIContent("Toon"           ));
+						ME.ShaderProperty(ToonSharpness  , new GUIContent("Toon Sharpness" ));
 					}
 
 				}
@@ -360,7 +395,7 @@ namespace SunaoShader {
 					if (OutlineFoldout) {
 						mat.SetInt("_OutlineFO" , 1);
 
-						ME.ShaderProperty(OutLineLighthing , new GUIContent("Use Light Color" ));
+						ME.ShaderProperty(OutLineLighting  , new GUIContent("Use Light Color" ));
 						ME.ShaderProperty(OutLineTexColor  , new GUIContent("Use Main Texture"));
 						ME.TexturePropertySingleLine(new GUIContent("Outline Texture") , OutLineTexture);
 						ME.ShaderProperty(OutLineFixScale  , new GUIContent("x10 Scale"       ));
@@ -414,6 +449,8 @@ namespace SunaoShader {
 						ME.ShaderProperty(EmissionScrX      , new GUIContent("Scroll X"        ));
 						ME.ShaderProperty(EmissionScrY      , new GUIContent("Scroll Y"        ));
 
+						ME.ShaderProperty(EmissionLighting , new GUIContent("Use Lighting"     ));
+
 						if (Shader_Transparent) {
 							ME.ShaderProperty(IgnoreTexAlphaE , new GUIContent("Ignore Main Texture Alpha"));
 						}
@@ -421,6 +458,70 @@ namespace SunaoShader {
 						ME.ShaderProperty(EmissionInTheDark , new GUIContent("Only in the Dark"));
 					} else {
 						mat.SetInt("_EmissionFO" , 0);
+					}
+
+					EditorGUI.indentLevel --;
+
+				}
+			}
+
+
+			GUILayout.Label("Parallax Emission", EditorStyles.boldLabel);
+
+			using (new EditorGUILayout.VerticalScope("box")) {
+
+				ME.ShaderProperty(ParallaxEnable , new GUIContent("Enable Parallax Emission"));
+
+				if (mat.GetInt("_ParallaxEnable") == 1) {
+
+					ME.TexturePropertySingleLine(new GUIContent("Parallax Emission Mask") , ParallaxMap);
+					if (ParallaxMap.textureValue != null) {
+						ME.TextureScaleOffsetProperty(ParallaxMap);
+					}
+
+					ME.ShaderProperty(ParallaxColor    , new GUIContent("Emission Color"    ));
+					ME.ShaderProperty(ParallaxEmission , new GUIContent("Emission Intensity"));
+					ME.ShaderProperty(ParallaxDepth    , new GUIContent("Parallax Depth"));
+
+					EditorGUI.indentLevel ++;
+
+					if (mat.GetInt("_ParallaxFO") == 1) ParallaxFoldout = true;
+					ParallaxFoldout = EditorGUILayout.Foldout(ParallaxFoldout , "Advanced Settings" , EditorStyles.boldFont);
+
+					if (ParallaxFoldout) {
+						mat.SetInt("_ParallaxFO" , 1);
+
+						ME.TexturePropertySingleLine(new GUIContent("Parallax Depth Mask"       ) , ParallaxDepthMap);
+						if (ParallaxDepthMap.textureValue != null) {
+							ME.TextureScaleOffsetProperty(ParallaxDepthMap);
+						}
+
+						ME.TexturePropertySingleLine(new GUIContent("2nd Parallax Emission Mask") , ParallaxMap2    );
+						if (ParallaxMap2.textureValue != null) {
+							ME.TextureScaleOffsetProperty(ParallaxMap2);
+						}
+
+						ME.ShaderProperty(ParallaxMode      , new GUIContent("Emission Mode"   ));
+
+						ME.ShaderProperty(ParallaxBlink     , new GUIContent("Blink"           ));
+						if (mat.GetFloat("_ParallaxBlink") > 0) {
+							ME.ShaderProperty(ParallaxFrequency , new GUIContent("Frequency"   ));
+							ME.ShaderProperty(ParallaxWaveform  , new GUIContent("Waveform"    ));
+							ME.ShaderProperty(ParallaxPhaseOfs  , new GUIContent("Phase Offset"));
+						}
+
+						ME.ShaderProperty(ParallaxScrX      , new GUIContent("Scroll X"        ));
+						ME.ShaderProperty(ParallaxScrY      , new GUIContent("Scroll Y"        ));
+
+						ME.ShaderProperty(ParallaxLighting , new GUIContent("Use Lighting"     ));
+
+						if (Shader_Transparent) {
+							ME.ShaderProperty(IgnoreTexAlphaPE , new GUIContent("Ignore Main Texture Alpha"));
+						}
+
+						ME.ShaderProperty(ParallaxInTheDark , new GUIContent("Only in the Dark"));
+					} else {
+						mat.SetInt("_ParallaxFO" , 0);
 					}
 
 					EditorGUI.indentLevel --;
@@ -509,7 +610,7 @@ namespace SunaoShader {
 						mat.SetInt("_RimLightingFO" , 1);
 
 						ME.ShaderProperty(RimLitGradient  , new GUIContent("Rim Light Gradient"));
-						ME.ShaderProperty(RimLitLighthing , new GUIContent("Use Light Color"   ));
+						ME.ShaderProperty(RimLitLighting  , new GUIContent("Use Light Color"   ));
 						ME.ShaderProperty(RimLitTexColor  , new GUIContent("Use Main Texture"  ));
 						ME.ShaderProperty(RimLitMode      , new GUIContent("Rim Light Mode"    ));
 
@@ -612,9 +713,16 @@ namespace SunaoShader {
 				}
 			}
 
+
+			if ((mat.GetInt("_VersionH") < Version_H) || (mat.GetInt("_VersionM") < Version_M) || (mat.GetInt("_VersionL") < Version_L)) {
+				mat.SetInt("_VersionH" , Version_H);
+				mat.SetInt("_VersionM" , Version_M);
+				mat.SetInt("_VersionL" , Version_L);
+			}
+
 			EditorGUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
-			GUILayout.Label("Sunao Shader " + Version , EditorStyles.boldLabel);
+			GUILayout.Label("Sunao Shader " + Version_H + "." + Version_M + "." + Version_L , EditorStyles.boldLabel);
 			EditorGUILayout.EndHorizontal();
 
 		}
