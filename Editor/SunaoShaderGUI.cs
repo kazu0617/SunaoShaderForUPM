@@ -157,6 +157,7 @@ namespace SunaoShader {
 		MaterialProperty PointLight;
 		MaterialProperty LightLimitter;
 		MaterialProperty MinimumLight;
+		MaterialProperty BlendOperation;
 		MaterialProperty EnableGammaFix;
 		MaterialProperty GammaR;
 		MaterialProperty GammaG;
@@ -182,7 +183,7 @@ namespace SunaoShader {
 
 		int     Version_H         = 1;
 		int     Version_M         = 4;
-		int     Version_L         = 1;
+		int     Version_L         = 2;
 
 		int     VersionC          = 0;
 		int     VersionM          = 0;
@@ -375,6 +376,7 @@ namespace SunaoShader {
 			PointLight        = FindProperty("_PointLight"        , Prop , false);
 			LightLimitter     = FindProperty("_LightLimitter"     , Prop , false);
 			MinimumLight      = FindProperty("_MinimumLight"      , Prop , false);
+			BlendOperation    = FindProperty("_BlendOperation"    , Prop , false);
 			EnableGammaFix    = FindProperty("_EnableGammaFix"    , Prop , false);
 			GammaR            = FindProperty("_GammaR"            , Prop , false);
 			GammaG            = FindProperty("_GammaG"            , Prop , false);
@@ -955,6 +957,7 @@ namespace SunaoShader {
 						ME.ShaderProperty(PointLight       , new GUIContent("Point/Spot Light Intensity" ));
 						ME.ShaderProperty(LightLimitter    , new GUIContent("Light Intensity Limitter"   ));
 						ME.ShaderProperty(MinimumLight     , new GUIContent("Minimum Light Limit"        ));
+						ME.ShaderProperty(BlendOperation   , new GUIContent("ForwardAdd Blend Mode"      ));
 
 					}
 

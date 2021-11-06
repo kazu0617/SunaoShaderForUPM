@@ -153,6 +153,7 @@
 	uniform float     _SHLight;
 	uniform bool      _LightLimitter;
 	uniform float     _MinimumLight;
+	uniform int       _BlendOperation;
 
 	uniform bool      _EnableGammaFix;
 	uniform float     _GammaR;

@@ -187,7 +187,7 @@ float4 frag (VOUT IN) : COLOR {
 		       MaxLight   = max(MaxLight , Lighting.g);
 		       MaxLight   = max(MaxLight , Lighting.b);
 
-		Lighting = Lighting / MaxLight;
+		Lighting = saturate(Lighting / MaxLight);
 	}
 
 //-------------------------------------エミッション
@@ -451,6 +451,13 @@ float4 frag (VOUT IN) : COLOR {
 	if (_LimitterEnable) {
 	       OUT.rgb  = min(OUT.rgb , _LimitterMax);
 	}
+
+//----SrcAlphaの代用
+	#ifdef TRANSPARENT
+		#ifdef PASS_FA
+			if (_BlendOperation == 4) OUT.rgb *= OUT.a;
+		#endif
+	#endif
 
 //-------------------------------------フォグ
 	UNITY_APPLY_FOG(IN.fogCoord, OUT);

@@ -1,0 +1,6 @@
+{
+	"displayName":"Samples",
+    "description": "シェーダのサンプルです。",
+    
+	"createSeparatePackage": true
+}

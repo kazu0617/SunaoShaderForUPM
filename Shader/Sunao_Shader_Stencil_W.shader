@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------
-//              Sunao Shader    Ver 1.4.1
+//              Sunao Shader    Ver 1.4.2
 //
 //                      Copyright (c) 2021 揚茄子研究所
 //                              Twitter : @SUNAO_VRC
@@ -235,6 +235,8 @@ Shader "Sunao Shader/[Stencil]/Write" {
 		[SToggle]
 		_LightLimitter     ("Light Limitter"            , int) = 1
 		_MinimumLight      ("Minimum Light Limit"       , Range( 0.0,  1.0)) = 0.0
+		[Enum(Add , 0 , Max , 4)]
+		_BlendOperation    ("ForwardAdd Blend Mode"     , int) = 4
 
 		[SToggle]
 		_EnableGammaFix    ("Enable Gamma Fix"          , int) = 0
@@ -266,7 +268,7 @@ Shader "Sunao Shader/[Stencil]/Write" {
 
 		[HideInInspector] _VersionH        ("Version H"         , int) = 1
 		[HideInInspector] _VersionM        ("Version M"         , int) = 4
-		[HideInInspector] _VersionL        ("Version L"         , int) = 1
+		[HideInInspector] _VersionL        ("Version L"         , int) = 2
 
 	}
 
@@ -350,7 +352,7 @@ Shader "Sunao Shader/[Stencil]/Write" {
 			}
 
 			Cull Front
-			BlendOp Max
+			BlendOp [_BlendOperation]
 			Blend One One
 			ZWrite Off
 
@@ -382,7 +384,7 @@ Shader "Sunao Shader/[Stencil]/Write" {
 			}
 
 			Cull [_Culling]
-			BlendOp Max
+			BlendOp [_BlendOperation]
 			Blend One One
 			ZWrite Off
 
