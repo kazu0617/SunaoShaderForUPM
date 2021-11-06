@@ -1,0 +1,274 @@
+//--------------------------------------------------------------
+//              Sunao Shader Frag
+//                      Copyright (c) 2019 揚茄子研究所
+//--------------------------------------------------------------
+
+
+fixed4 frag (VOUT IN) : COLOR {
+
+//-------------------------------------カットアウト
+	#ifdef CUTOUT
+	       clip(tex2D(_MainTex  , IN.uv).a * _Color.a - _Cutout);
+	#endif
+
+//-------------------------------------メインカラー
+	fixed4 OUT          = fixed4 (0.0f , 0.0f , 0.0f , 1.0f);
+
+	#ifdef TRANSPARENT
+	       OUT.a        = saturate(tex2D(_MainTex  , IN.uv).a * _Color.a * _Alpha);
+	#endif
+
+	fixed3 Color        = tex2D(_MainTex  , IN.uv).rgb;
+	       Color        = Color * _Color.rgb * _Bright * IN.color;
+
+//-------------------------------------ノーマルマップ
+	float3 Normal       = UnityObjectToWorldNormal(IN.normal);
+
+	float3 tan_sx       = float3(IN.tanW.x , IN.tanB.x , Normal.x);
+	float3 tan_sy       = float3(IN.tanW.y , IN.tanB.y , Normal.y);
+	float3 tan_sz       = float3(IN.tanW.z , IN.tanB.z , Normal.z);
+
+	float3 NormalMap    = UnpackScaleNormal(tex2D(_BumpMap, IN.uv) , _BumpScale);
+	       Normal.x     = dot(tan_sx , NormalMap);
+	       Normal.y     = dot(tan_sy , NormalMap);
+	       Normal.z     = dot(tan_sz , NormalMap);
+
+//-------------------------------------シェーディング
+	fixed3 ShadeMask    = tex2D(_ShadeMask, IN.uv).rgb * _Shade;
+	fixed3 LightBoost   = 1.0f + (tex2D(_LightMask, IN.uv).rgb * (_LightBoost - 1.0f));
+
+//----ディフューズ
+	float  Diffuse      = DiffuseCalc(Normal , IN.ldir , _ShadeGradient , _ShadeWidth);
+
+	#ifdef PASS_FB
+		float  SHDiffuse    = DiffuseCalc(Normal , IN.shdir , _ShadeGradient , _ShadeWidth);
+
+		float4 VLDiffuse    = IN.vldirX * Normal.x;
+		       VLDiffuse   += IN.vldirY * Normal.y;
+		       VLDiffuse   += IN.vldirZ * Normal.z;
+		       VLDiffuse    = max((float4)0.0f , VLDiffuse * IN.vlcorr);
+	#endif
+
+//----トゥーンシェーディング
+	if (_ToonEnable) {
+		Diffuse   = ToonCalc(Diffuse , IN.toon);
+		#ifdef PASS_FB
+			SHDiffuse = ToonCalc(SHDiffuse , IN.toon);
+			VLDiffuse = ToonCalc(VLDiffuse , IN.toon);
+		#endif
+	}
+
+//----影の色
+	fixed3 ShadeColor   = saturate(Color * 3.0f - 1.5f) * _ShadeColor;
+	       ShadeColor   = lerp(ShadeColor , _CustomShadeColor.rgb , _CustomShadeColor.a);
+
+//-------------------------------------ライティング
+	#ifdef PASS_FB
+		fixed3 LightBase    = _LightColor0 * _DirectionalLight;
+		fixed3 VLight0      = unity_LightColor[0].rgb * IN.vlatn.x;
+		fixed3 VLight1      = unity_LightColor[1].rgb * IN.vlatn.y;
+		fixed3 VLight2      = unity_LightColor[2].rgb * IN.vlatn.z;
+		fixed3 VLight3      = unity_LightColor[3].rgb * IN.vlatn.w;
+		fixed3 VLightBase   = saturate(VLight0 + VLight1 + VLight2 + VLight3);
+	#endif
+	#ifdef PASS_FA
+		fixed3 LightBase    = _LightColor0 * LIGHT_ATTENUATION(IN) * _PointLight;
+	#endif
+
+//----モノクロライティング
+	if (_MonochromeLit) {
+		LightBase  = MonoColor(LightBase);
+		#ifdef PASS_FB
+			VLight0    = MonoColor(VLight0);
+			VLight1    = MonoColor(VLight1);
+			VLight2    = MonoColor(VLight2);
+			VLight3    = MonoColor(VLight3);
+			VLightBase = MonoColor(VLightBase);
+		#endif
+	}
+
+//----ライト反映
+	fixed3 Lighting     = LightBase;
+
+	fixed3 DiffColor    = LightingCalc(Lighting , Diffuse , ShadeColor , ShadeMask);
+
+	#ifdef PASS_FB
+		fixed3 SHDiffColor  = LightingCalc(IN.shmax , SHDiffuse , ShadeColor , ShadeMask);
+		       SHDiffColor  = saturate(SHDiffColor - IN.shmin) + IN.shmin;
+
+		fixed3 VL4Diff[4];
+		       VL4Diff[0]   = LightingCalc(VLight0 , VLDiffuse.x , ShadeColor , ShadeMask);
+		       VL4Diff[1]   = LightingCalc(VLight1 , VLDiffuse.y , ShadeColor , ShadeMask);
+		       VL4Diff[2]   = LightingCalc(VLight2 , VLDiffuse.z , ShadeColor , ShadeMask);
+		       VL4Diff[3]   = LightingCalc(VLight3 , VLDiffuse.w , ShadeColor , ShadeMask);
+		fixed3 VLDiffColor  = saturate(VL4Diff[0] + VL4Diff[1] + VL4Diff[2] + VL4Diff[3]);
+
+		       Lighting     = (DiffColor + SHDiffColor + VLDiffColor) * LightBoost;
+	#endif
+	#ifdef PASS_FA
+		       Lighting     = DiffColor * LightBoost;
+	#endif
+
+	if (_LightLimitter) Lighting = saturate(Lighting);
+
+//-------------------------------------エミッション
+	#ifdef PASS_FB
+		fixed3 Emission     = (fixed3)0.0f;
+		if (_EmissionEnable) {
+		       Emission     = _Emission * _EmissionColor.rgb;
+		       Emission    *= tex2D(_EmissionMap  , IN.euv.xy + IN.eprm.yz).rgb * tex2D(_EmissionMap  , IN.euv.xy + IN.eprm.yz).a * IN.eprm.x;
+		       Emission    *= tex2D(_EmissionMap2 , IN.euv.zw             ).rgb * tex2D(_EmissionMap2 , IN.euv.zw             ).a;
+		}
+	#endif
+
+//-------------------------------------リフレクション
+	fixed3 SpecularMask = (fixed3)0.0f;
+	fixed3 Specular     = (fixed3)0.0f;
+	fixed3 Reflection   = (fixed3)0.0f;
+	fixed3 MatCapture   = (fixed3)0.0f;
+
+	if (_ReflectionEnable) {
+
+//----スペキュラ反射
+		       SpecularMask = tex2D(_MetallicGlossMap , IN.uv).rgb * tex2D(_MetallicGlossMap , IN.uv).a;
+
+		fixed3 RLSpecular   = SpecularCalc(Normal , IN.ldir , IN.view , _GlossMapScale) * LightBase;
+
+		#ifdef PASS_FB
+			fixed3 SHSpecular   = (fixed3)0.0f;
+			if (_SpecularSH) {
+			       SHSpecular   = SpecularCalc(Normal , IN.shdir , IN.view , _GlossMapScale) * IN.shmax;
+			}
+			       Specular     = (RLSpecular + SHSpecular) * _Specular * ((_GlossMapScale * _GlossMapScale * _GlossMapScale) + 0.25f);
+		#endif
+		#ifdef PASS_FA
+			       Specular     =  RLSpecular               * _Specular * ((_GlossMapScale * _GlossMapScale * _GlossMapScale) + 0.25f);
+		#endif
+
+//----環境マッピング
+		#ifdef PASS_FB
+			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
+
+			if (_ReflectLit == 1) Reflection *= LightBase + VLightBase;
+			if (_ReflectLit == 2) Reflection *= IN.shmax;
+			if (_ReflectLit == 3) Reflection *= LightBase + IN.shmax + VLightBase;
+		#endif
+		#ifdef PASS_FA
+			if ((_ReflectLit == 1) || (_ReflectLit == 3)) {
+			       Reflection   = ReflectionCalc(Normal , IN.view , _GlossMapScale);
+				   Reflection  *= LightBase;
+			}
+		#endif
+
+//----マットキャップ
+		#ifdef PASS_FB
+			float2 MatCapUV     = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5 + 0.5;
+			       MatCapture   = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
+
+			if (_MatCapLit == 1) MatCapture *= LightBase + VLightBase;
+			if (_MatCapLit == 2) MatCapture *= IN.shmax;
+			if (_MatCapLit == 3) MatCapture *= LightBase + IN.shmax + VLightBase;
+		#endif
+		#ifdef PASS_FA
+			if ((_MatCapLit  == 1) || (_MatCapLit  == 3)) {
+				float2 MatCapUV    = float2(dot(IN.matcaph , Normal), dot(IN.matcapv , Normal)) * 0.5 + 0.5;
+				       MatCapture  = tex2D(_MatCap , MatCapUV).rgb * _MatCapStrength;
+				       MatCapture *= LightBase;
+			}
+		#endif
+
+		if (_SpecularTexColor ) Specular    *= Color;
+		if (_MetallicTexColor ) Reflection  *= Color;
+		if (_MatCapTexColor   ) MatCapture  *= Color;
+	}
+
+//-------------------------------------リムライティング
+	fixed3 RimLight = (fixed3)0.0f;
+	#ifdef PASS_FB
+		if (_RimLitEnable) {
+			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
+			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
+			if (_RimLitLighthing) RimLight *= LightBase + IN.shmax + VLightBase;
+			if (_RimLitTexColor ) RimLight *= Color;
+		}
+	#endif
+	#ifdef PASS_FA
+		if (_RimLitEnable && _RimLitLighthing) {
+			       RimLight  = RimLightCalc(Normal , IN.view , _RimLit , _RimLitGradient);
+			       RimLight *= _RimLitColor.rgb * _RimLitColor.a * tex2D(_RimLitMask , IN.uv).rgb;
+			       RimLight *= LightBase;
+			if (_RimLitTexColor ) RimLight *= Color;
+		}
+	#endif
+
+//-------------------------------------最終カラー計算
+	       OUT.rgb      = Color * Lighting;
+	       OUT.rgb      = lerp(OUT.rgb , Color , _Unlit);
+	       OUT.rgb      = lerp(OUT.rgb , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask);
+
+//----反射のテクスチャアルファ無視
+	#ifdef TRANSPARENT
+		if (_IgnoreTexAlphaR) {
+			float ReflectionAlpha  = 0.0f;
+			      ReflectionAlpha += MonoColor(Reflection) * _Metallic;
+			      ReflectionAlpha += MonoColor(Specular);
+			      ReflectionAlpha += MonoColor(MatCapture);
+			      ReflectionAlpha *= SpecularMask;
+			OUT.a = saturate(OUT.a + ReflectionAlpha);
+		}
+	#endif
+
+//----リムライティング混合
+	if (_RimLitEnable) {
+		if (_RimLitMode == 0) OUT.rgb += RimLight;
+		if (_RimLitMode == 1) OUT.rgb *= RimLight;
+		if (_RimLitMode == 2) OUT.rgb  = saturate(OUT.rgb - RimLight);
+	}
+
+//----エミッション混合
+	#ifdef PASS_FB
+		if (_EmissionEnable) {
+
+			float EmissionRev   = MonoColor(LightBase) + MonoColor(IN.shmax) + MonoColor(VLightBase);
+			      EmissionRev   = 1.0f - pow(saturate(EmissionRev) , 0.44964029f);
+			      EmissionRev   = saturate((EmissionRev - _EmissionInTheDark + 0.1f) * 10.0f);
+			      Emission     *= EmissionRev;
+
+			if (_EmissionMode == 0) OUT.rgb += Emission;
+			if (_EmissionMode == 1) {
+				OUT.rgb *= saturate(1.0f - Emission);
+				OUT.rgb += (lerp(Color , Reflection , (_Metallic * SpecularMask)) + ((Specular + MatCapture) * SpecularMask)) * Emission;
+			}
+			if (_EmissionMode == 2) OUT.rgb  = saturate(OUT.rgb - Emission);
+		}
+	#endif
+
+//-------------------------------------出力オプション
+//----ガンマ修正
+	if (_EnableGammaFix) {
+		_GammaR = max(_GammaR , 0.00001f);
+		_GammaG = max(_GammaG , 0.00001f);
+		_GammaB = max(_GammaB , 0.00001f);
+
+	       OUT.r        = pow(OUT.r , 1.0f / (1.0f / _GammaR));
+	       OUT.g        = pow(OUT.g , 1.0f / (1.0f / _GammaG));
+	       OUT.b        = pow(OUT.b , 1.0f / (1.0f / _GammaB));
+	}
+
+//----明度修正
+	if (_EnableBlightFix) {
+	       OUT.rgb     *= _BlightOutput;
+	       OUT.rgb      = max(OUT.rgb + _BlightOffset , 0.0f);
+	}
+
+//----出力リミッタ
+	if (_LimitterEnable) {
+	       OUT.rgb      = min(OUT.rgb , _LimitterMax);
+	}
+
+//-------------------------------------フォグ
+	UNITY_APPLY_FOG(IN.fogCoord, OUT);
+
+
+	return OUT;
+}
