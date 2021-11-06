@@ -45,8 +45,3 @@ MIT Licenseの範囲内で自由に行うことができます。
 詳しくは同梱のLICENSE及び http://sunao.orz.hm/agenasulab/ss/LICENSE を参照して
 ください。
 (日本語訳: https://ja.osdn.net/projects/opensource/wiki/licenses%2FMIT_license )
-
-このパッケージは、MIT License のもと公開されているSunaoShaderをUPMで使用できるよう、kazu0617がGitHubに上げなおしたものになります。
-UPMを活用して使用する場合は、 https://docs.unity3d.com/ja/current/Manual/upm-ui-giturl.html を参考にしつつgiturlを指定してください。
-
-このバージョンを指定する場合は *** となります(確認後差し替え)。
